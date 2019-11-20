@@ -8,6 +8,9 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
 	@Test
 	void contextLoads() {
+
+
+
 	}
 
 }
