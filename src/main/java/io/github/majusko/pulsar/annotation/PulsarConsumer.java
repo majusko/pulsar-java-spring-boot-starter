@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface PulsarConsumer {
-    String topic = null;
-    Class<?> clazz = null;
-    Serialization serialization = Serialization.JSON;
+    String topic();
+    Class<?> clazz();
+    Serialization serialization() default Serialization.JSON;
 }

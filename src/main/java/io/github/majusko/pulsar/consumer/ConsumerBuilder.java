@@ -1,12 +1,53 @@
 package io.github.majusko.pulsar.consumer;
 
+import io.github.majusko.pulsar.collector.ConsumerCollector;
+import io.github.majusko.pulsar.collector.ConsumerHolder;
+import org.apache.pulsar.client.api.Consumer;
+import org.apache.pulsar.client.api.PulsarClient;
+import org.apache.pulsar.client.api.PulsarClientException;
+import org.apache.pulsar.client.api.Schema;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class ConsumerBuilder {
 
-    private void init() {
-        //TODO init consumers
+    private final ConsumerCollector consumerCollector;
+    private final PulsarClient pulsarClient;
+
+    private List<Consumer> consumers;
+
+    public ConsumerBuilder(ConsumerCollector consumerCollector, PulsarClient pulsarClient) {
+        this.consumerCollector = consumerCollector;
+        this.pulsarClient = pulsarClient;
     }
 
+    @PostConstruct
+    private void init() {
+        consumers = consumerCollector.getConsumers().entrySet().stream()
+            .map(holder -> subscribe(holder.getKey(), holder.getValue()))
+            .collect(Collectors.toList());
+    }
+
+    private Consumer<?> subscribe(String name, ConsumerHolder holder) {
+        try {
+            return pulsarClient
+                .newConsumer(Schema.JSON(holder.getAnnotation().clazz()))
+                .consumerName(name)
+                .subscriptionName(name)
+                .topic(holder.getAnnotation().topic())
+                .messageListener((consumer, msg) -> {
+                    //TODO
+                }).subscribe();
+        } catch(PulsarClientException e) {
+            throw new RuntimeException("TODO Exception!", e);
+        }
+    }
+
+    public List<Consumer> getConsumers() {
+        return consumers;
+    }
 }
