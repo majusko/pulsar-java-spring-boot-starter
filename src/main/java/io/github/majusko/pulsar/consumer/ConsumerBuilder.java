@@ -9,6 +9,7 @@ import org.apache.pulsar.client.api.Schema;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,10 +41,20 @@ public class ConsumerBuilder {
                 .subscriptionName(name)
                 .topic(holder.getAnnotation().topic())
                 .messageListener((consumer, msg) -> {
-                    //TODO
+                    try {
+                        final Method method = holder.getHandler();
+
+                        method.setAccessible(true);
+                        method.invoke(holder.getBean(), msg);
+
+                        consumer.acknowledge(msg);
+                    } catch(Exception e) {
+                        consumer.negativeAcknowledge(msg);
+                        throw new RuntimeException("TODO Custom Exception!", e);
+                    }
                 }).subscribe();
         } catch(PulsarClientException e) {
-            throw new RuntimeException("TODO Exception!", e);
+            throw new RuntimeException("TODO Custom Exception!", e);
         }
     }
 
