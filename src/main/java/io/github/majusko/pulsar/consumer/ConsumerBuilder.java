@@ -42,6 +42,7 @@ public class ConsumerBuilder {
                 .topic(holder.getAnnotation().topic())
                 .messageListener((consumer, msg) -> {
                     try {
+                        //TODO arg validation?
                         final Method method = holder.getHandler();
 
                         method.setAccessible(true);
