@@ -1,6 +1,7 @@
 package io.github.majusko.pulsar.collector;
 
 import io.github.majusko.pulsar.annotation.PulsarProducer;
+import io.github.majusko.pulsar.producer.ProducerFactory;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,16 @@ public class ProducerCollector implements BeanPostProcessor {
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
         final Class<?> beanClass = bean.getClass();
+
+
+        if(beanClass.equals(ProducerFactory.class)) {
+
+            if(bean instanceof ProducerFactory) {
+                ((ProducerFactory) bean).getTopics();
+            }
+
+
+        }
 
         final Map<String, ProducerHolder> registeredProducers = Arrays.stream(beanClass.getDeclaredMethods())
             .filter($ -> $.isAnnotationPresent(PulsarProducer.class))
