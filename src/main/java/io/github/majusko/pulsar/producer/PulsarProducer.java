@@ -1,6 +1,5 @@
-package io.github.majusko.pulsar.annotation;
+package io.github.majusko.pulsar.producer;
 
-import io.github.majusko.pulsar.constant.Serialization;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.ElementType;
@@ -12,9 +11,4 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Component
 public @interface PulsarProducer {
-    String topic();
-
-    Class<?> clazz();
-
-    Serialization serialization() default Serialization.JSON;
 }

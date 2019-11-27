@@ -1,6 +1,6 @@
 package io.github.majusko.pulsar.consumer;
 
-import io.github.majusko.pulsar.collector.ProducerCollector;
+import io.github.majusko.pulsar.producer.ProducerCollector;
 import io.github.majusko.pulsar.collector.ProducerHolder;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
@@ -34,8 +34,8 @@ public class ProducerBuilder {
 
     private Producer<?> buildProducer(ProducerHolder holder) {
         try {
-            return pulsarClient.newProducer(Schema.JSON(holder.getAnnotation().clazz()))
-                .topic(holder.getAnnotation().topic())
+            return pulsarClient.newProducer(Schema.JSON(holder.getClazz()))
+                .topic(holder.getTopic())
                 .create();
         } catch(PulsarClientException e) {
             throw new RuntimeException("TODO Custom Exception!", e);

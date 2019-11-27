@@ -1,6 +1,6 @@
 package io.github.majusko.pulsar;
 
-import io.github.majusko.pulsar.test.TestBasicProducer;
+import io.github.majusko.pulsar.test.TestProducerConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +14,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 class PulsarJavaSpringBootStarterApplicationTests {
 
 	@Autowired
-	private TestBasicProducer testBasicProducer;
+	private TestProducerConfiguration testProducerConfiguration;
 
 	@Test
 	void contextLoads() {

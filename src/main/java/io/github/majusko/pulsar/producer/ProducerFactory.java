@@ -1,13 +1,16 @@
 package io.github.majusko.pulsar.producer;
 
+import java.util.HashMap;
 import java.util.Map;
 
-public class ProducerFactory {
+@PulsarProducer
+public class ProducerFactory implements PulsarProducerFactory {
 
-    private final Map<String, Class<?>> topics;
+    private final Map<String, Class<?>> topics = new HashMap<>();
 
-    public ProducerFactory(Map<String, Class<?>> topics) {
-        this.topics = topics;
+    public ProducerFactory addProducer(String topic, Class<?> clazz) {
+        topics.put(topic, clazz);
+        return this;
     }
 
     public Map<String, Class<?>> getTopics() {

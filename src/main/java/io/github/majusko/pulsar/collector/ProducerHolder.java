@@ -1,30 +1,27 @@
 package io.github.majusko.pulsar.collector;
 
-import io.github.majusko.pulsar.annotation.PulsarProducer;
-
-import java.lang.reflect.Method;
+import io.github.majusko.pulsar.constant.Serialization;
 
 public class ProducerHolder {
 
-    private final PulsarProducer annotation;
-    private final Method handler;
-    private final Object bean;
+    private final String topic;
+    private final Class<?> clazz;
+    private final Serialization serialization = Serialization.JSON;
 
-    public ProducerHolder(PulsarProducer annotation, Method handler, Object bean) {
-        this.annotation = annotation;
-        this.handler = handler;
-        this.bean = bean;
+    public ProducerHolder(String topic, Class<?> clazz) {
+        this.topic = topic;
+        this.clazz = clazz;
     }
 
-    public PulsarProducer getAnnotation() {
-        return annotation;
+    public String getTopic() {
+        return topic;
     }
 
-    public Method getHandler() {
-        return handler;
+    public Class<?> getClazz() {
+        return clazz;
     }
 
-    public Object getBean() {
-        return bean;
+    public Serialization getSerialization() {
+        return serialization;
     }
 }
