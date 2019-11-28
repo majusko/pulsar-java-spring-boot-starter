@@ -1,19 +1,23 @@
 package io.github.majusko.pulsar.producer;
 
+import io.github.majusko.pulsar.annotation.PulsarProducer;
+import io.github.majusko.pulsar.constant.Serialization;
+import org.apache.pulsar.shade.org.apache.commons.lang3.tuple.ImmutablePair;
+
 import java.util.HashMap;
 import java.util.Map;
 
 @PulsarProducer
 public class ProducerFactory implements PulsarProducerFactory {
 
-    private final Map<String, Class<?>> topics = new HashMap<>();
+    private final Map<String, ImmutablePair<Class<?>, Serialization>> topics = new HashMap<>();
 
     public ProducerFactory addProducer(String topic, Class<?> clazz) {
-        topics.put(topic, clazz);
+        topics.put(topic, new ImmutablePair<>(clazz, Serialization.JSON));
         return this;
     }
 
-    public Map<String, Class<?>> getTopics() {
+    public Map<String, ImmutablePair<Class<?>, Serialization>> getTopics() {
         return topics;
     }
 }

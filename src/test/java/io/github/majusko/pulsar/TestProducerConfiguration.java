@@ -1,4 +1,4 @@
-package io.github.majusko.pulsar.test;
+package io.github.majusko.pulsar;
 
 import io.github.majusko.pulsar.producer.ProducerFactory;
 import org.springframework.context.annotation.Bean;

@@ -1,5 +1,6 @@
 package io.github.majusko.pulsar.producer;
 
+import io.github.majusko.pulsar.annotation.PulsarProducer;
 import io.github.majusko.pulsar.collector.ProducerHolder;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
@@ -29,7 +30,7 @@ public class ProducerCollector implements BeanPostProcessor {
 
         if(beanClass.isAnnotationPresent(PulsarProducer.class) && bean instanceof PulsarProducerFactory) {
             producers.putAll(((PulsarProducerFactory) bean).getTopics().entrySet().stream()
-                .map($ -> new ProducerHolder($.getKey(), $.getValue()))
+                .map($ -> new ProducerHolder($.getKey(), $.getValue().left, $.getValue().right))
                 .collect(Collectors.toMap(ProducerHolder::getTopic, this::buildProducer)));
         }
 
@@ -51,7 +52,7 @@ public class ProducerCollector implements BeanPostProcessor {
         }
     }
 
-    public Map<String, Producer> getProducers() {
+    Map<String, Producer> getProducers() {
         return producers;
     }
 }

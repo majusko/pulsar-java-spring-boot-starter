@@ -1,4 +1,4 @@
-package io.github.majusko.pulsar.test;
+package io.github.majusko.pulsar;
 
 public class MyMsg {
     private String data;
