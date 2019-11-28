@@ -37,8 +37,8 @@ public class ConsumerBuilder {
         try {
             return pulsarClient
                 .newConsumer(Schema.JSON(holder.getAnnotation().clazz()))
-                .consumerName(name)
-                .subscriptionName(name)
+                .consumerName("consumer-" + name)
+                .subscriptionName("subscription-" + name)
                 .topic(holder.getAnnotation().topic())
                 .messageListener((consumer, msg) -> {
                     try {

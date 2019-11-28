@@ -1,22 +1,19 @@
 package io.github.majusko.pulsar.producer;
 
-import io.github.majusko.pulsar.consumer.ProducerBuilder;
-import org.apache.pulsar.client.api.Producer;
+import org.apache.pulsar.client.api.MessageId;
+import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 public class PulsarTemplate<T> {
 
-    private Map<String, Producer> producers = new HashMap<>();
+    private final ProducerCollector producerCollector;
 
-    void setTopics(ProducerBuilder producerBuilder) {
-        this.producers.putAll(producerBuilder.getProducers());
+    public PulsarTemplate(ProducerCollector producerCollector) {
+        this.producerCollector = producerCollector;
     }
 
-    public void send(String topic, T msg) {
-
+    public MessageId send(String topic, T msg) throws PulsarClientException {
+        return producerCollector.getProducers().get(topic).send(msg);
     }
 }

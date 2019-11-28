@@ -1,6 +1,9 @@
 package io.github.majusko.pulsar;
 
+import io.github.majusko.pulsar.producer.PulsarTemplate;
+import io.github.majusko.pulsar.test.MyMsg;
 import io.github.majusko.pulsar.test.TestProducerConfiguration;
+import org.apache.pulsar.client.api.PulsarClientException;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,12 +17,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 class PulsarJavaSpringBootStarterApplicationTests {
 
 	@Autowired
-	private TestProducerConfiguration testProducerConfiguration;
+	private PulsarTemplate<MyMsg> testProducerConfiguration;
 
 	@Test
-	void contextLoads() {
+	void contextLoads() throws PulsarClientException {
 
-
+		testProducerConfiguration.send("aa", new MyMsg("data"));
 
 	}
 
