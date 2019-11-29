@@ -1,0 +1,22 @@
+language: java
+jdk:
+- oraclejdk8
+dist: trusty
+after_success:
+- bash <(curl -s https://codecov.io/bash)
+before_deploy:
+- "mvn -DskipTests package"
+- export FILE_TO_UPLOAD=$(ls target/pulsar-java-spring-boot-starter-*.jar)
+- "echo $FILE_TO_UPLOAD"
+deploy:
+  provider: releases
+  api_key:
+    secure: bO+e2sBHOtdH1iYY5t1G6DChoSwzuWREE2joi2wEBw00Gn2+MYMJBvzxJTy622rBMxYirIhZM6X3HMJq0iUrgfZBkmZ1RWbs88NfiCsGwZZfoA26B2i2aS7uXDtP6jVIW2Sgv9d/f9YhP/xQtUV2V99kqotzHDInGvBUFE264GLTiae8X6czD8EbN1rZ0rxVIzzNv067Vi2TD1e3ootR5ObdhUfeWVpvSCRShYm+B1Lc42BSI0H5hoqS5sKN4l9N3Bct0zmwm8AG7ShaGL4xzMczRsjru9qaQFX8vBeDTAgVwBRmxUOVJMYGA/owN9PJHXjoEID6/qmXVN4lReW2EwhD0KzcGCsW+WI7kG0QT3KwnTcQsFuV5Ydy1a23o0D+8I6MilRLwHnTsCVAiAJTuNiwdBnYd3mWIspeqb97LC90KQbzmoSBMndyG1S9Za6Jr9WC5VPNK0oGikAbbq1kXeuDBOT261Kre7Ea9HiQZhdvCDh9+fN0GO0wgg7I4Iaw22jNVf7odu1op+YXm46kK2T6Q8Zoae/1Kb7WNMOPm/T6Ad2/nt/lV2UMdY4VO++gUXQwpPsRw0QM59CcrX32PdTpGLfITrpst+/PXfGdZDxvq59cCHB3+aVkgWrrTOcyFoMTIZAiCewSz3j0h76h3qjtEOr3NYTsI/NZr/K+Hdg=
+  file:
+  - "${FILE_TO_UPLOAD}"
+  skip_cleanup: true
+  overwrite: true
+  on:
+    repo: majusko/pulsar-java-spring-boot-starter
+    tags: true
+    branch: master
