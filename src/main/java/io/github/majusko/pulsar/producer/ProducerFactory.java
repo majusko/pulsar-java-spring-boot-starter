@@ -17,6 +17,11 @@ public class ProducerFactory implements PulsarProducerFactory {
         return this;
     }
 
+    public ProducerFactory addProducer(String topic, Class<?> clazz, Serialization serialization) {
+        topics.put(topic, new ImmutablePair<>(clazz, serialization));
+        return this;
+    }
+
     public Map<String, ImmutablePair<Class<?>, Serialization>> getTopics() {
         return topics;
     }

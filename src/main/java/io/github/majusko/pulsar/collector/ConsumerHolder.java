@@ -10,7 +10,7 @@ public class ConsumerHolder {
     private final Method handler;
     private final Object bean;
 
-    public ConsumerHolder(PulsarConsumer annotation, Method handler, Object bean) {
+    ConsumerHolder(PulsarConsumer annotation, Method handler, Object bean) {
         this.annotation = annotation;
         this.handler = handler;
         this.bean = bean;

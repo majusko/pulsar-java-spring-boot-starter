@@ -14,6 +14,7 @@ public class PulsarTemplate<T> {
     }
 
     public MessageId send(String topic, T msg) throws PulsarClientException {
+        //noinspection unchecked
         return producerCollector.getProducers().get(topic).send(msg);
     }
 }
