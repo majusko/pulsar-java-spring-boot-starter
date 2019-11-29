@@ -9,6 +9,7 @@ public class TestProducerConfiguration {
 
     @Bean
     public ProducerFactory producerFactory() {
-        return new ProducerFactory().addProducer("aa", MyMsg.class);
+        return new ProducerFactory();
+//            .addProducer("aa", MyMsg.class);
     }
 }
