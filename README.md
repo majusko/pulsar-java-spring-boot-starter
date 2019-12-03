@@ -34,7 +34,23 @@ Simple start consist only from 3 simple steps.
 
 #### 2. Configure Producer
 
-TODO
+Just inject `PulsarTemplate` into your service
+
+```java
+@Service
+class MyProducer {
+
+	private final static String TOPIC = "my-topic";
+
+	@Autowired
+	private PulsarTemplate<MyMsg> producer;
+
+	void send(MyMsg msg) {
+		producer.send(TOPIC, msg);
+	}
+}
+
+```
 
 #### 3. Configure Consumer
 
