@@ -1,17 +1,15 @@
-# WIP: Spring boot starter for [Apache Pulsar](https://pulsar.apache.org/)
+# Spring boot starter for [Apache Pulsar](https://pulsar.apache.org/)
 
 [![Release](https://jitpack.io/v/majusko/pulsar-java-spring-boot-starter.svg)](https://jitpack.io/#majusko/pulsar-java-spring-boot-starter)
 [![Build Status](https://travis-ci.com/majusko/pulsar-java-spring-boot-starter.svg?branch=master)](https://travis-ci.com/majusko/pulsar-java-spring-boot-starter)
 [![Test Coverage](https://codecov.io/gh/majusko/pulsar-java-spring-boot-starter/branch/master/graph/badge.svg)](https://codecov.io/gh/majusko/pulsar-java-spring-boot-starter/branch/master)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-WIP - Expected stable, tested version during christmas.
+> Library is still not ready for production - expected in January 2020
 
 ## Quick Start
 
 Simple start consist only from 3 simple steps.
-
-(If you never used [gRPC library](https://github.com/LogNet/grpc-spring-boot-starter) before, have a look on this [basic setup](https://github.com/LogNet/grpc-spring-boot-starter#4-show-case) first.)
 
 #### 1. Add Maven dependency
 
@@ -54,7 +52,19 @@ class MyProducer {
 
 #### 3. Configure Consumer
 
-TODO
+Just annotate your service with `@PulsarConsumer` annotation.
+
+```java
+@Service
+class MyConsumer {
+    
+    @PulsarConsumer(topic="my-topic", clazz=MyMsg.class)
+    void consume(MyMsg msg) { 
+        producer.send(TOPIC, msg); 
+    }
+}
+
+```
 
 ## Documentation
 
