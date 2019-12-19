@@ -32,19 +32,32 @@ Simple start consist only from 3 simple steps.
 
 #### 2. Configure Producer
 
-Just inject `PulsarTemplate` into your service
+Create your configuration class with all producers you would like to register.
+
+```java
+@Configuration
+public class TestProducerConfiguration {
+
+    @Bean
+    public ProducerFactory producerFactory() {
+        return new ProducerFactory()
+            .addProducer("my-topic", MyMsg.class)
+            .addProducer("other-topic", String.class);
+    }
+}
+```
+
+Use registered producers by simply injecting the `PulsarTemplate` into your service.
 
 ```java
 @Service
 class MyProducer {
 
-	private final static String TOPIC = "my-topic";
-
 	@Autowired
 	private PulsarTemplate<MyMsg> producer;
 
 	void send(MyMsg msg) {
-		producer.send(TOPIC, msg);
+		producer.send("my-topic", msg);
 	}
 }
 
@@ -52,7 +65,7 @@ class MyProducer {
 
 #### 3. Configure Consumer
 
-Just annotate your service with `@PulsarConsumer` annotation.
+Annotate your service method with `@PulsarConsumer` annotation.
 
 ```java
 @Service
@@ -63,12 +76,36 @@ class MyConsumer {
         producer.send(TOPIC, msg); 
     }
 }
-
 ```
 
 ## Documentation
 
-TODO
+### Configuration
+
+Default configuration:
+```properties
+pulsar.serviceUrl=pulsar://localhost:6650
+pulsar.ioThreads=10
+pulsar.listenerThreads=10
+pulsar.isEnableTcpNoDelay=false
+pulsar.keepAliveIntervalSec=20
+pulsar.connectionTimeoutSec=10
+pulsar.operationTimeoutSec=15
+pulsar.startingBackoffIntervalMs=100
+pulsar.maxBackoffIntervalSec=10
+```
+
+Properties explained:
+
+- `pulsar.serviceUrl` - URL used to connect to pulsar cluster.
+- `pulsar.ioThreads` - Number of threads to be used for handling connections to brokers.
+- `pulsar.listenerThreads` - Set the number of threads to be used for message listeners/subscribers.
+- `pulsar.isEnableTcpNoDelay` -  Whether to use TCP no-delay flag on the connection, to disable Nagle algorithm.
+- `pulsar.keepAliveInterval` - Keep alive interval for each client-broker-connection.
+- `pulsar.connectionTimeoutSec` - duration of time to wait for a connection to a broker to be established. If the duration passes without a response from the broker, the connection attempt is dropped.
+- `pulsar.operationTimeoutSec` - Operation timeout.
+- `pulsar.startingBackoffIntervalMs` - Duration of time for a backoff interval (Retry algorithm).
+- `pulsar.maxBackoffIntervalSec` - The maximum duration of time for a backoff interval (Retry algorithm).
 
 ## Contributing
 
