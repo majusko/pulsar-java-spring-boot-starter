@@ -21,10 +21,6 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
 	@Test
 	void contextLoads() throws PulsarClientException {
-
-//		testProducerConfiguration.send("aa", new MyMsg("data"));
-
+		testProducerConfiguration.send("aa", new MyMsg("bb"));
 	}
-
 }
-

@@ -2,6 +2,7 @@ package io.github.majusko.pulsar;
 
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @ComponentScan
 @EnableConfigurationProperties(PulsarProperties.class)
+@ConditionalOnProperty(value = "pulsar.mock", havingValue = "false", matchIfMissing = true)
 public class PulsarAutoConfiguration {
 
     private final PulsarProperties pulsarProperties;

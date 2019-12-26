@@ -6,6 +6,7 @@ import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.Schema;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@DependsOn({"pulsarClient", "consumerCollector"})
 public class ConsumerBuilder {
 
     private final ConsumerCollector consumerCollector;
@@ -48,12 +50,12 @@ public class ConsumerBuilder {
                         method.invoke(holder.getBean(), msg);
 
                         consumer.acknowledge(msg);
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         consumer.negativeAcknowledge(msg);
                         throw new RuntimeException("TODO Custom Exception!", e);
                     }
                 }).subscribe();
-        } catch(PulsarClientException e) {
+        } catch (PulsarClientException e) {
             throw new RuntimeException("TODO Custom Exception!", e);
         }
     }
