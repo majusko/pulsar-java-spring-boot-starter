@@ -2,6 +2,7 @@ package io.github.majusko.pulsar.producer;
 
 import io.github.majusko.pulsar.annotation.PulsarProducer;
 import io.github.majusko.pulsar.collector.ProducerHolder;
+import io.github.majusko.pulsar.constant.Serialization;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
@@ -44,12 +45,19 @@ public class ProducerCollector implements BeanPostProcessor {
 
     private Producer<?> buildProducer(ProducerHolder holder) {
         try {
-            return pulsarClient.newProducer(Schema.JSON(holder.getClazz()))
+            return pulsarClient.newProducer(getSchema(holder))
                 .topic(holder.getTopic())
                 .create();
         } catch(PulsarClientException e) {
             throw new RuntimeException("TODO Custom Exception!", e);
         }
+    }
+
+    private <T> Schema<?> getSchema(ProducerHolder holder) throws RuntimeException {
+        if (holder.getSerialization().equals(Serialization.JSON)) {
+            return Schema.JSON(holder.getClazz());
+        }
+        throw new RuntimeException("TODO custom runtime exception");
     }
 
     Map<String, Producer> getProducers() {

@@ -65,6 +65,7 @@
 					<excludes>
 						<exclude>**/*Properties.*</exclude>
 						<exclude>**/*Configuration.*</exclude>
+						<exclude>**/*Application.*</exclude>
 						<exclude>**/mock/**/*</exclude>
 					</excludes>
 				</configuration>

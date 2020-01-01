@@ -10,6 +10,7 @@ import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.shade.org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,11 @@ class PulsarJavaSpringBootStarterApplicationTests {
 	@Test
 	void testProducerSendMethod() throws PulsarClientException {
 		producer.send("topic-one", new MyMsg("bb"));
+	}
+
+	@Before
+	public void init() throws InterruptedException {
+		Thread.sleep(100);
 	}
 
 	@Test
