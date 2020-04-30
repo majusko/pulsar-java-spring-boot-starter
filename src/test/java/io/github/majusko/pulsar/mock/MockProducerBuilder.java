@@ -98,8 +98,18 @@ public class MockProducerBuilder<T> implements ProducerBuilder<T> {
     }
 
     @Override
+    public ProducerBuilder<T> roundRobinRouterBatchingPartitionSwitchFrequency(int i) {
+        return null;
+    }
+
+    @Override
     public ProducerBuilder<T> batchingMaxMessages(int batchMessagesMaxMessagesPerBatch) {
         return this;
+    }
+
+    @Override
+    public ProducerBuilder<T> batchingMaxBytes(int i) {
+        return null;
     }
 
     @Override
@@ -118,6 +128,11 @@ public class MockProducerBuilder<T> implements ProducerBuilder<T> {
     }
 
     @Override
+    public ProducerBuilder<T> intercept(org.apache.pulsar.client.api.interceptor.ProducerInterceptor... producerInterceptors) {
+        return null;
+    }
+
+    @Override
     public ProducerBuilder<T> intercept(ProducerInterceptor[] interceptors) {
         return this;
     }
@@ -125,6 +140,11 @@ public class MockProducerBuilder<T> implements ProducerBuilder<T> {
     @Override
     public ProducerBuilder<T> autoUpdatePartitions(boolean autoUpdate) {
         return this;
+    }
+
+    @Override
+    public ProducerBuilder<T> enableMultiSchema(boolean b) {
+        return null;
     }
 
     @Override

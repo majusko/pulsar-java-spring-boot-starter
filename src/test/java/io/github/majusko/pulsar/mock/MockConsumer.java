@@ -42,12 +42,32 @@ public class MockConsumer<T> implements Consumer<T> {
     }
 
     @Override
+    public Messages<T> batchReceive() throws PulsarClientException {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Messages<T>> batchReceiveAsync() {
+        return null;
+    }
+
+    @Override
     public void acknowledge(MessageId messageId) throws PulsarClientException {
 
     }
 
     @Override
+    public void acknowledge(Messages<?> messages) throws PulsarClientException {
+
+    }
+
+    @Override
     public void negativeAcknowledge(MessageId messageId) {
+
+    }
+
+    @Override
+    public void negativeAcknowledge(Messages<?> messages) {
 
     }
 
@@ -58,6 +78,11 @@ public class MockConsumer<T> implements Consumer<T> {
 
     @Override
     public CompletableFuture<Void> acknowledgeAsync(MessageId messageId) {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Void> acknowledgeAsync(Messages<?> messages) {
         return null;
     }
 
@@ -108,6 +133,16 @@ public class MockConsumer<T> implements Consumer<T> {
 
     @Override
     public CompletableFuture<Void> seekAsync(long timestamp) {
+        return null;
+    }
+
+    @Override
+    public MessageId getLastMessageId() throws PulsarClientException {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<MessageId> getLastMessageIdAsync() {
         return null;
     }
 

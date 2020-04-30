@@ -1,32 +1,31 @@
 package io.github.majusko.pulsar;
 
 import io.github.majusko.pulsar.collector.ConsumerCollector;
-import io.github.majusko.pulsar.collector.ConsumerHolder;
 import io.github.majusko.pulsar.constant.Serialization;
 import io.github.majusko.pulsar.consumer.ConsumerBuilder;
 import io.github.majusko.pulsar.producer.ProducerFactory;
 import io.github.majusko.pulsar.producer.PulsarTemplate;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.PulsarClientException;
-import org.apache.pulsar.shade.org.apache.commons.lang3.tuple.ImmutablePair;
-import org.junit.Assert;
-import org.junit.Before;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles("test")
 @Import(TestProducerConfiguration.class)
 class PulsarJavaSpringBootStarterApplicationTests {
 
@@ -51,12 +50,12 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void testConsumerRegistration1() throws Exception {
         final List<Consumer> consumers = consumerBuilder.getConsumers();
 
-        Assert.assertEquals(1, consumers.size());
+        Assertions.assertEquals(1, consumers.size());
 
         final Consumer consumer = consumers.stream().findFirst().orElseThrow(Exception::new);
 
-        Assert.assertNotNull(consumer);
-        Assert.assertEquals("mock-topic", consumer.getTopic());
+        Assertions.assertNotNull(consumer);
+        Assertions.assertEquals("mock-topic", consumer.getTopic());
     }
 
 //    @Test
@@ -76,11 +75,11 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         final Map<String, ImmutablePair<Class<?>, Serialization>> topics = producerFactory.getTopics();
 
-        Assert.assertEquals(2, topics.size());
+        Assertions.assertEquals(2, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
-        Assert.assertTrue(topicNames.contains("topic-one"));
-        Assert.assertTrue(topicNames.contains("topic-two"));
+        Assertions.assertTrue(topicNames.contains("topic-one"));
+        Assertions.assertTrue(topicNames.contains("topic-two"));
     }
 }
