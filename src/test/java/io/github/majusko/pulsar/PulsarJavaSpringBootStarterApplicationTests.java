@@ -1,6 +1,7 @@
 package io.github.majusko.pulsar;
 
 import io.github.majusko.pulsar.collector.ConsumerCollector;
+import io.github.majusko.pulsar.collector.ConsumerHolder;
 import io.github.majusko.pulsar.constant.Serialization;
 import io.github.majusko.pulsar.consumer.ConsumerBuilder;
 import io.github.majusko.pulsar.producer.ProducerFactory;
@@ -58,17 +59,17 @@ class PulsarJavaSpringBootStarterApplicationTests {
         Assertions.assertEquals("mock-topic", consumer.getTopic());
     }
 
-//    @Test
-//    void testConsumerRegistration2() throws Exception {
-//        final Class<TestConsumerConfiguration> clazz = TestConsumerConfiguration.class;
-//        final String descriptor = clazz.getName() + "#" + clazz.getDeclaredMethods()[0].getName();
-//        final ConsumerHolder consumerHolder = consumerCollector.getConsumer(descriptor).orElseThrow(Exception::new);
-//
-//        Assert.assertNotNull(consumerHolder);
-//        Assert.assertEquals("mock-topic", consumerHolder.getAnnotation().topic());
-//        Assert.assertEquals(TestConsumerConfiguration.class, consumerHolder.getBean().getClass());
-//        Assert.assertEquals("mockTheListener", consumerHolder.getHandler().getName());
-//    }
+    @Test
+    void testConsumerRegistration2() throws Exception {
+        final Class<TestConsumerConfiguration> clazz = TestConsumerConfiguration.class;
+        final String descriptor = clazz.getName() + "#" + clazz.getDeclaredMethods()[0].getName();
+        final ConsumerHolder consumerHolder = consumerCollector.getConsumer(descriptor).orElseThrow(Exception::new);
+
+        Assertions.assertNotNull(consumerHolder);
+        Assertions.assertEquals("mock-topic", consumerHolder.getAnnotation().topic());
+        Assertions.assertEquals(TestConsumerConfiguration.class, consumerHolder.getBean().getClass());
+        Assertions.assertEquals("mockTheListener", consumerHolder.getHandler().getName());
+    }
 
     @Test
     void testProducerRegistration() {
