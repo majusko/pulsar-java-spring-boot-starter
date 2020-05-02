@@ -65,6 +65,11 @@ public class MockConsumerBuilder<T> implements ConsumerBuilder<T> {
     }
 
     @Override
+    public ConsumerBuilder<T> subscriptionMode(SubscriptionMode subscriptionMode) {
+        return null;
+    }
+
+    @Override
     public ConsumerBuilder<T> messageListener(MessageListener messageListener) {
         return this;
     }
@@ -72,6 +77,11 @@ public class MockConsumerBuilder<T> implements ConsumerBuilder<T> {
     @Override
     public ConsumerBuilder<T> cryptoKeyReader(CryptoKeyReader cryptoKeyReader) {
         return this;
+    }
+
+    @Override
+    public ConsumerBuilder<T> messageCrypto(MessageCrypto messageCrypto) {
+        return null;
     }
 
     @Override
@@ -152,6 +162,21 @@ public class MockConsumerBuilder<T> implements ConsumerBuilder<T> {
     @Override
     public ConsumerBuilder<T> autoUpdatePartitions(boolean autoUpdate) {
         return this;
+    }
+
+    @Override
+    public ConsumerBuilder<T> keySharedPolicy(KeySharedPolicy keySharedPolicy) {
+        return null;
+    }
+
+    @Override
+    public ConsumerBuilder<T> startMessageIdInclusive() {
+        return null;
+    }
+
+    @Override
+    public ConsumerBuilder<T> batchReceivePolicy(BatchReceivePolicy batchReceivePolicy) {
+        return null;
     }
 
     @Override

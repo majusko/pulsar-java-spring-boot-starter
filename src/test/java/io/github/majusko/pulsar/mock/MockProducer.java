@@ -41,6 +41,11 @@ public class MockProducer<T> implements Producer<T> {
     }
 
     @Override
+    public <V> TypedMessageBuilder<V> newMessage(Schema<V> schema) {
+        return null;
+    }
+
+    @Override
     public long getLastSequenceId() {
         return 0;
     }
