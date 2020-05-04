@@ -111,6 +111,12 @@ Properties explained:
 
 All contributors are welcome. If you never contributed to the open-source, start with reading the [Github Flow](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/github-flow).
 
+### Roadmap task
+1. Pick a task from simple roadmap in [Projects](https://github.com/majusko/pulsar-java-spring-boot-starter/projects) section.
+2. Create a [pull request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests) with reference (url) to the task inside the [Projects](https://github.com/majusko/pulsar-java-spring-boot-starter/projects) section.
+3. Rest and enjoy the great feeling of being a contributor.
+
+### Hotfix
 1. Create an [issue](https://help.github.com/en/github/managing-your-work-on-github/about-issues)
 2. Create a [pull request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests) with reference to the issue
 3. Rest and enjoy the great feeling of being a contributor.
