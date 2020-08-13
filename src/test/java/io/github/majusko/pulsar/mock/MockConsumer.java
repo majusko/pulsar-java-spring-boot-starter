@@ -52,7 +52,7 @@ public class MockConsumer<T> implements Consumer<T> {
     }
 
     @Override
-    public void acknowledge(MessageId messageId) throws PulsarClientException {
+    public void acknowledge(MessageId messageId) {
 
     }
 
@@ -72,7 +72,22 @@ public class MockConsumer<T> implements Consumer<T> {
     }
 
     @Override
+    public void reconsumeLater(Message<?> message, long l, TimeUnit timeUnit) throws PulsarClientException {
+
+    }
+
+    @Override
+    public void reconsumeLater(Messages<?> messages, long l, TimeUnit timeUnit) throws PulsarClientException {
+
+    }
+
+    @Override
     public void acknowledgeCumulative(MessageId messageId) throws PulsarClientException {
+
+    }
+
+    @Override
+    public void reconsumeLaterCumulative(Message<?> message, long l, TimeUnit timeUnit) throws PulsarClientException {
 
     }
 
@@ -87,7 +102,22 @@ public class MockConsumer<T> implements Consumer<T> {
     }
 
     @Override
+    public CompletableFuture<Void> reconsumeLaterAsync(Message<?> message, long l, TimeUnit timeUnit) {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Void> reconsumeLaterAsync(Messages<?> messages, long l, TimeUnit timeUnit) {
+        return null;
+    }
+
+    @Override
     public CompletableFuture<Void> acknowledgeCumulativeAsync(MessageId messageId) {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Void> reconsumeLaterCumulativeAsync(Message<?> message, long l, TimeUnit timeUnit) {
         return null;
     }
 

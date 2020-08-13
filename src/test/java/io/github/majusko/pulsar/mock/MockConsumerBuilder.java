@@ -15,7 +15,7 @@ public class MockConsumerBuilder<T> implements ConsumerBuilder<T> {
     }
 
     @Override
-    public Consumer<T> subscribe() throws PulsarClientException {
+    public Consumer<T> subscribe() {
         return new MockConsumer<>();
     }
 
@@ -130,6 +130,11 @@ public class MockConsumerBuilder<T> implements ConsumerBuilder<T> {
     }
 
     @Override
+    public ConsumerBuilder<T> patternAutoDiscoveryPeriod(int i, TimeUnit timeUnit) {
+        return this;
+    }
+
+    @Override
     public ConsumerBuilder<T> priorityLevel(int priorityLevel) {
         return this;
     }
@@ -177,6 +182,26 @@ public class MockConsumerBuilder<T> implements ConsumerBuilder<T> {
     @Override
     public ConsumerBuilder<T> batchReceivePolicy(BatchReceivePolicy batchReceivePolicy) {
         return null;
+    }
+
+    @Override
+    public ConsumerBuilder<T> enableRetry(boolean b) {
+        return this;
+    }
+
+    @Override
+    public ConsumerBuilder<T> maxPendingChuckedMessage(int i) {
+        return this;
+    }
+
+    @Override
+    public ConsumerBuilder<T> autoAckOldestChunkedMessageOnQueueFull(boolean b) {
+        return this;
+    }
+
+    @Override
+    public ConsumerBuilder<T> expireTimeOfIncompleteChunkedMessage(long l, TimeUnit timeUnit) {
+        return this;
     }
 
     @Override

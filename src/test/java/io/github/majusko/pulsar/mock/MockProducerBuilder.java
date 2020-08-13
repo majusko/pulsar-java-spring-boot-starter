@@ -78,6 +78,11 @@ public class MockProducerBuilder<T> implements ProducerBuilder<T> {
     }
 
     @Override
+    public ProducerBuilder<T> enableChunking(boolean b) {
+        return this;
+    }
+
+    @Override
     public ProducerBuilder<T> cryptoKeyReader(CryptoKeyReader cryptoKeyReader) {
         return this;
     }
