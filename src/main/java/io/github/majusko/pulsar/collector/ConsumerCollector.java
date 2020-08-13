@@ -1,9 +1,9 @@
 package io.github.majusko.pulsar.collector;
 
 import io.github.majusko.pulsar.annotation.PulsarConsumer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -14,6 +14,9 @@ import java.util.stream.Collectors;
 @Configuration
 public class ConsumerCollector implements BeanPostProcessor {
 
+    @Value("${pulsar.consumerNameDelimiter:}")
+    private String consumerNameDelimiter;
+
     private Map<String, ConsumerHolder> consumers = new ConcurrentHashMap<>();
 
     @Override
@@ -23,7 +26,7 @@ public class ConsumerCollector implements BeanPostProcessor {
         consumers.putAll(Arrays.stream(beanClass.getDeclaredMethods())
             .filter($ -> $.isAnnotationPresent(PulsarConsumer.class))
             .collect(Collectors.toMap(
-                method -> beanClass.getName() + "#" + method.getName(),
+                method -> beanClass.getName() + consumerNameDelimiter + method.getName(),
                 method -> new ConsumerHolder(method.getAnnotation(PulsarConsumer.class), method, bean))));
 
         return bean;

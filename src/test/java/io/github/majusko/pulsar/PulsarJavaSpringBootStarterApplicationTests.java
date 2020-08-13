@@ -6,20 +6,14 @@ import io.github.majusko.pulsar.constant.Serialization;
 import io.github.majusko.pulsar.consumer.ConsumerBuilder;
 import io.github.majusko.pulsar.producer.ProducerFactory;
 import io.github.majusko.pulsar.producer.PulsarTemplate;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.PulsarClientException;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.HashSet;
 import java.util.List;
@@ -62,7 +56,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
     @Test
     void testConsumerRegistration2() {
         final Class<TestConsumerConfiguration> clazz = TestConsumerConfiguration.class;
-        final String descriptor = clazz.getName() + "#" + clazz.getMethods()[0].getName();
+        final String descriptor = clazz.getName() + clazz.getMethods()[0].getName();
         final ConsumerHolder consumerHolder = consumerCollector.getConsumer(descriptor).orElse(null);
 
         Assertions.assertNotNull(consumerHolder);
