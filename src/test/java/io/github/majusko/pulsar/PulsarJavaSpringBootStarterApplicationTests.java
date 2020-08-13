@@ -6,20 +6,19 @@ import io.github.majusko.pulsar.constant.Serialization;
 import io.github.majusko.pulsar.consumer.ConsumerBuilder;
 import io.github.majusko.pulsar.producer.ProducerFactory;
 import io.github.majusko.pulsar.producer.PulsarTemplate;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.PulsarClientException;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PulsarContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.HashSet;
 import java.util.List;
@@ -28,6 +27,7 @@ import java.util.Set;
 
 @SpringBootTest
 @Import({TestProducerConfiguration.class, TestConsumerConfiguration.class})
+@Testcontainers
 class PulsarJavaSpringBootStarterApplicationTests {
 
     @Autowired
@@ -41,6 +41,14 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
     @Autowired
     private PulsarTemplate<MyMsg> producer;
+
+    @Container
+    static PulsarContainer pulsarContainer = new PulsarContainer();
+
+    @DynamicPropertySource
+    static void propertySettings(DynamicPropertyRegistry registry) {
+        registry.add("pulsar.serviceUrl", pulsarContainer::getPulsarBrokerUrl);
+    }
 
     @Test
     void testProducerSendMethod() throws PulsarClientException {
