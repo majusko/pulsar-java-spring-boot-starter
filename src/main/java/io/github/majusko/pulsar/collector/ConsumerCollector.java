@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @Configuration
 public class ConsumerCollector implements BeanPostProcessor {
 
-    @Value("${pulsar.consumerNameDelimiter:_}")
+    @Value("${pulsar.consumerNameDelimiter:}")
     private String consumerNameDelimiter;
 
     private Map<String, ConsumerHolder> consumers = new ConcurrentHashMap<>();

@@ -91,7 +91,7 @@ pulsar.connectionTimeoutSec=10
 pulsar.operationTimeoutSec=15
 pulsar.startingBackoffIntervalMs=100
 pulsar.maxBackoffIntervalSec=10
-pulsar.consumerNameDelimiter=_
+pulsar.consumerNameDelimiter=
 ```
 
 Properties explained:
@@ -105,7 +105,7 @@ Properties explained:
 - `pulsar.operationTimeoutSec` - Operation timeout.
 - `pulsar.startingBackoffIntervalMs` - Duration of time for a backoff interval (Retry algorithm).
 - `pulsar.maxBackoffIntervalSec` - The maximum duration of time for a backoff interval (Retry algorithm).
-- `pulsar.consumerNameDelimiter` - Consumer names are connection of bean name and method with a delimiter. By default we use `_` but that might not be supported by some monitoring tools.
+- `pulsar.consumerNameDelimiter` - Consumer names are connection of bean name and method with a delimiter. By default there is no delimiter and words are connected together.
 
 ## Contributing
 
