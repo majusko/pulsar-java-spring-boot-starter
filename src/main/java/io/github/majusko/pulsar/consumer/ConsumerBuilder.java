@@ -42,6 +42,7 @@ public class ConsumerBuilder {
                 .consumerName("consumer-" + name)
                 .subscriptionName("subscription-" + name)
                 .topic(holder.getAnnotation().topic())
+                .subscriptionType(holder.getAnnotation().subscriptionType())
                 .messageListener((consumer, msg) -> {
                     try {
                         final Method method = holder.getHandler();
