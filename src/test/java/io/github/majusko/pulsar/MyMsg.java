@@ -6,7 +6,14 @@ public class MyMsg {
         this.data = data;
     }
 
+    public MyMsg() {
+    }
+
     public String getData() {
         return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
     }
 }

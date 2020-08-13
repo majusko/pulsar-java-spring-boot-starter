@@ -14,14 +14,22 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PulsarContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.awaitility.Awaitility.await;
+
 @SpringBootTest
-@Import({TestProducerConfiguration.class, TestConsumerConfiguration.class})
+@Import({TestProducerConfiguration.class, TestConsumers.class})
+@Testcontainers
 class PulsarJavaSpringBootStarterApplicationTests {
 
     @Autowired
@@ -36,9 +44,22 @@ class PulsarJavaSpringBootStarterApplicationTests {
     @Autowired
     private PulsarTemplate<MyMsg> producer;
 
+    @Container
+    static PulsarContainer pulsarContainer = new PulsarContainer();
+
+    @Autowired
+    private TestConsumers testConsumers;
+
+    @DynamicPropertySource
+    static void propertySettings(DynamicPropertyRegistry registry) {
+        registry.add("pulsar.serviceUrl", pulsarContainer::getPulsarBrokerUrl);
+    }
+
     @Test
     void testProducerSendMethod() throws PulsarClientException {
         producer.send("topic-one", new MyMsg("bb"));
+
+        await().untilTrue(testConsumers.mockTopicListenerReceived);
     }
 
     @Test
@@ -50,19 +71,19 @@ class PulsarJavaSpringBootStarterApplicationTests {
         final Consumer consumer = consumers.stream().findFirst().orElseThrow(Exception::new);
 
         Assertions.assertNotNull(consumer);
-        Assertions.assertEquals("mock-topic", consumer.getTopic());
+        Assertions.assertEquals("topic-one", consumer.getTopic());
     }
 
     @Test
     void testConsumerRegistration2() {
-        final Class<TestConsumerConfiguration> clazz = TestConsumerConfiguration.class;
+        final Class<TestConsumers> clazz = TestConsumers.class;
         final String descriptor = clazz.getName() + clazz.getMethods()[0].getName();
         final ConsumerHolder consumerHolder = consumerCollector.getConsumer(descriptor).orElse(null);
 
         Assertions.assertNotNull(consumerHolder);
-        Assertions.assertEquals("mock-topic", consumerHolder.getAnnotation().topic());
-        Assertions.assertEquals(TestConsumerConfiguration.class, consumerHolder.getBean().getClass());
-        Assertions.assertEquals("mockTheListener", consumerHolder.getHandler().getName());
+        Assertions.assertEquals("topic-one", consumerHolder.getAnnotation().topic());
+        Assertions.assertEquals(TestConsumers.class, consumerHolder.getBean().getClass());
+        Assertions.assertEquals("topicOneListener", consumerHolder.getHandler().getName());
     }
 
     @Test

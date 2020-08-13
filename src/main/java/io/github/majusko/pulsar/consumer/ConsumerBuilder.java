@@ -48,7 +48,7 @@ public class ConsumerBuilder {
                         final Method method = holder.getHandler();
 
                         method.setAccessible(true);
-                        method.invoke(holder.getBean(), msg);
+                        method.invoke(holder.getBean(), msg.getValue());
 
                         consumer.acknowledge(msg);
                     } catch (Exception e) {
