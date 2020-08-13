@@ -10,6 +10,7 @@ before_deploy:
 - "mvn -DskipTests package"
 - export FILE_TO_UPLOAD=$(ls target/pulsar-java-spring-boot-starter-*.jar)
 - "echo $FILE_TO_UPLOAD"
+- "mvn deploy -Dregistry=https://maven.pkg.github.com/majusko -Dtoken=$GH_TOKEN"
 deploy:
   provider: releases
   api_key:
