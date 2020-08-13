@@ -76,8 +76,8 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
     @Test
     void testConsumerRegistration2() {
-        final Class<TestConsumers> clazz = TestConsumers.class;
-        final String descriptor = clazz.getName() + "#" + clazz.getMethods()[0].getName();
+        final Class<TestConsumerConfiguration> clazz = TestConsumerConfiguration.class;
+        final String descriptor = clazz.getName() + clazz.getMethods()[0].getName();
         final ConsumerHolder consumerHolder = consumerCollector.getConsumer(descriptor).orElse(null);
 
         Assertions.assertNotNull(consumerHolder);

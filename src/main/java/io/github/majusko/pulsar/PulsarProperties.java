@@ -13,6 +13,7 @@ public class PulsarProperties {
     private Integer operationTimeoutSec = 15;
     private Integer startingBackoffIntervalMs = 100;
     private Integer maxBackoffIntervalSec = 10;
+    private String consumerNameDelimiter = "";
 
     public String getServiceUrl() {
         return serviceUrl;
@@ -84,5 +85,13 @@ public class PulsarProperties {
 
     public void setMaxBackoffIntervalSec(Integer maxBackoffIntervalSec) {
         this.maxBackoffIntervalSec = maxBackoffIntervalSec;
+    }
+
+    public String getConsumerNameDelimiter() {
+        return consumerNameDelimiter;
+    }
+
+    public void setConsumerNameDelimiter(String consumerNameDelimiter) {
+        this.consumerNameDelimiter = consumerNameDelimiter;
     }
 }
