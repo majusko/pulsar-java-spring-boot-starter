@@ -26,8 +26,6 @@ public class ConsumerCollector implements BeanPostProcessor {
                 method -> beanClass.getName() + "#" + method.getName(),
                 method -> new ConsumerHolder(method.getAnnotation(PulsarConsumer.class), method, bean))));
 
-        System.out.println(consumers.toString());
-
         return bean;
     }
 
