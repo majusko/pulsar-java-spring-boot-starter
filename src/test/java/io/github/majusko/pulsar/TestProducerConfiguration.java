@@ -11,6 +11,7 @@ public class TestProducerConfiguration {
     @Bean
     public ProducerFactory producerFactory() {
         return new ProducerFactory()
+            .addProducer("topic-for-error", String.class)
             .addProducer("topic-one", MyMsg.class)
             .addProducer("topic-two", MyMsg2.class, Serialization.JSON);
     }

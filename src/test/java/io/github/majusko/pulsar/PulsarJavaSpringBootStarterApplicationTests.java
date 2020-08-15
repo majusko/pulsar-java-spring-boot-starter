@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.awaitility.Awaitility.await;
 
@@ -43,6 +44,9 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
     @Autowired
     private PulsarTemplate<MyMsg> producer;
+
+    @Autowired
+    private PulsarTemplate<String> producerForError;
 
     @Container
     static PulsarContainer pulsarContainer = new PulsarContainer();
@@ -66,7 +70,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void testConsumerRegistration1() throws Exception {
         final List<Consumer<?>> consumers = consumerBuilder.getConsumers();
 
-        Assertions.assertEquals(1, consumers.size());
+        Assertions.assertEquals(2, consumers.size());
 
         final Consumer<?> consumer = consumers.stream().findFirst().orElseThrow(Exception::new);
 
@@ -91,11 +95,29 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         final Map<String, ImmutablePair<Class<?>, Serialization>> topics = producerFactory.getTopics();
 
-        Assertions.assertEquals(2, topics.size());
+        Assertions.assertEquals(3, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
         Assertions.assertTrue(topicNames.contains("topic-one"));
         Assertions.assertTrue(topicNames.contains("topic-two"));
+    }
+
+    @Test
+    void testMessageErrorHandling() throws PulsarClientException {
+        final AtomicBoolean receivedError = new AtomicBoolean(false);
+        final String messageToSend = "This message will never arrive.";
+
+        producerForError.send("topic-for-error", messageToSend);
+
+        consumerBuilder.onError(($) -> {
+            Assertions.assertEquals($.getConsumer().getTopic(), "topic-for-error");
+            Assertions.assertEquals($.getMessage().getValue(), messageToSend);
+            Assertions.assertNotNull($.getException());
+
+            receivedError.set(true);
+        });
+
+        await().untilTrue(receivedError);
     }
 }
