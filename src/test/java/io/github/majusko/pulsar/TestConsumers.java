@@ -17,4 +17,8 @@ public class TestConsumers {
         Assertions.assertNotNull(myMsg);
         mockTopicListenerReceived.set(true);
     }
+
+    @PulsarConsumer(topic = "topic-for-error", clazz = String.class, serialization = Serialization.JSON)
+    public void topicForErrorListener(Integer myMsg) {
+    }
 }

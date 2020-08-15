@@ -3,6 +3,7 @@ package io.github.majusko.pulsar.producer;
 import io.github.majusko.pulsar.annotation.PulsarProducer;
 import io.github.majusko.pulsar.collector.ProducerHolder;
 import io.github.majusko.pulsar.constant.Serialization;
+import io.github.majusko.pulsar.error.exception.ProducerInitException;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
@@ -19,7 +20,7 @@ public class ProducerCollector implements BeanPostProcessor {
 
     private final PulsarClient pulsarClient;
 
-    private Map<String, Producer> producers = new ConcurrentHashMap<>();
+    private final Map<String, Producer> producers = new ConcurrentHashMap<>();
 
     public ProducerCollector(PulsarClient pulsarClient) {
         this.pulsarClient = pulsarClient;
@@ -29,7 +30,7 @@ public class ProducerCollector implements BeanPostProcessor {
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
         final Class<?> beanClass = bean.getClass();
 
-        if(beanClass.isAnnotationPresent(PulsarProducer.class) && bean instanceof PulsarProducerFactory) {
+        if (beanClass.isAnnotationPresent(PulsarProducer.class) && bean instanceof PulsarProducerFactory) {
             producers.putAll(((PulsarProducerFactory) bean).getTopics().entrySet().stream()
                 .map($ -> new ProducerHolder($.getKey(), $.getValue().left, $.getValue().right))
                 .collect(Collectors.toMap(ProducerHolder::getTopic, this::buildProducer)));
@@ -48,8 +49,8 @@ public class ProducerCollector implements BeanPostProcessor {
             return pulsarClient.newProducer(getSchema(holder))
                 .topic(holder.getTopic())
                 .create();
-        } catch(PulsarClientException e) {
-            throw new RuntimeException("TODO Custom Exception!", e);
+        } catch (PulsarClientException e) {
+            throw new ProducerInitException("Failed to init producer.", e);
         }
     }
 
@@ -57,7 +58,7 @@ public class ProducerCollector implements BeanPostProcessor {
         if (holder.getSerialization().equals(Serialization.JSON)) {
             return Schema.JSON(holder.getClazz());
         }
-        throw new RuntimeException("TODO custom runtime exception");
+        throw new ProducerInitException("Unknown producer schema.");
     }
 
     Map<String, Producer> getProducers() {
