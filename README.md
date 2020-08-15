@@ -1,5 +1,6 @@
 # Spring boot starter for [Apache Pulsar](https://pulsar.apache.org/)
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.majusko/pulsar-java-spring-boot-starter/badge.svg)](https://search.maven.org/search?q=g:io.github.majusko)
 [![Release](https://jitpack.io/v/majusko/pulsar-java-spring-boot-starter.svg)](https://jitpack.io/#majusko/pulsar-java-spring-boot-starter)
 [![Build Status](https://travis-ci.com/majusko/pulsar-java-spring-boot-starter.svg?branch=master)](https://travis-ci.com/majusko/pulsar-java-spring-boot-starter)
 [![Test Coverage](https://codecov.io/gh/majusko/pulsar-java-spring-boot-starter/branch/master/graph/badge.svg)](https://codecov.io/gh/majusko/pulsar-java-spring-boot-starter/branch/master)
@@ -10,15 +11,6 @@
 Simple start consist only from 3 simple steps.
 
 #### 1. Add Maven dependency
-
-```xml
-<repositories>
-    <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
-    </repository>
-</repositories>
-```
 
 ```xml
 <dependency>
@@ -75,6 +67,10 @@ class MyConsumer {
     }
 }
 ```
+
+## Example project
+
+#### [Java Pulsar Example Project](https://github.com/majusko/java-pulsar-example)
 
 ## Documentation
 
