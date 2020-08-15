@@ -6,7 +6,7 @@ services:
 - docker
 after_success:
 - bash <(curl -s https://codecov.io/bash)
-- mvn deploy --settings travis-settings.xml -DskipTests=true -B
+- "[[ $TRAVIS_BRANCH == \"feature/maven-central-deploy\" ]] && { mvn deploy --settings travis-settings.xml -DskipTests=true -B; };"
 before_deploy:
 - "mvn -DskipTests package"
 - export FILE_TO_UPLOAD=$(ls target/pulsar-java-spring-boot-starter-*.jar)
