@@ -68,7 +68,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
     @Test
     void testConsumerRegistration1() throws Exception {
-        final List<Consumer<?>> consumers = consumerBuilder.getConsumers();
+        final List<Consumer> consumers = consumerBuilder.getConsumers();
 
         Assertions.assertEquals(2, consumers.size());
 

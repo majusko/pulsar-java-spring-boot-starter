@@ -20,7 +20,7 @@ public class ProducerCollector implements BeanPostProcessor {
 
     private final PulsarClient pulsarClient;
 
-    private final Map<String, Producer<?>> producers = new ConcurrentHashMap<>();
+    private final Map<String, Producer> producers = new ConcurrentHashMap<>();
 
     public ProducerCollector(PulsarClient pulsarClient) {
         this.pulsarClient = pulsarClient;
@@ -61,7 +61,7 @@ public class ProducerCollector implements BeanPostProcessor {
         throw new ProducerInitException("Unknown producer schema.");
     }
 
-    Map<String, Producer<?>> getProducers() {
+    Map<String, Producer> getProducers() {
         return producers;
     }
 }

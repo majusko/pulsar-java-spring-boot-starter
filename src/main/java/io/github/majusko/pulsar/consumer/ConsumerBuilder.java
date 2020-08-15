@@ -26,7 +26,7 @@ public class ConsumerBuilder {
     private final ConsumerCollector consumerCollector;
     private final PulsarClient pulsarClient;
 
-    private List<Consumer<?>> consumers;
+    private List<Consumer> consumers;
 
     public ConsumerBuilder(ConsumerCollector consumerCollector, PulsarClient pulsarClient) {
         this.consumerCollector = consumerCollector;
@@ -40,7 +40,7 @@ public class ConsumerBuilder {
             .collect(Collectors.toList());
     }
 
-    private Consumer<?> subscribe(String name, ConsumerHolder holder) {
+    private Consumer subscribe(String name, ConsumerHolder holder) {
         try {
             return pulsarClient
                 .newConsumer(Schema.JSON(holder.getAnnotation().clazz()))
@@ -66,7 +66,7 @@ public class ConsumerBuilder {
         }
     }
 
-    public List<Consumer<?>> getConsumers() {
+    public List<Consumer> getConsumers() {
         return consumers;
     }
 
