@@ -40,7 +40,7 @@ public class ConsumerBuilder {
             .collect(Collectors.toList());
     }
 
-    private Consumer subscribe(String name, ConsumerHolder holder) {
+    private Consumer<?> subscribe(String name, ConsumerHolder holder) {
         try {
             return pulsarClient
                 .newConsumer(Schema.JSON(holder.getAnnotation().clazz()))
