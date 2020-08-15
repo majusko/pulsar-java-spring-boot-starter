@@ -72,10 +72,9 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         Assertions.assertEquals(2, consumers.size());
 
-        final Consumer<?> consumer = consumers.stream().findFirst().orElseThrow(Exception::new);
+        final Consumer<?> consumer = consumers.stream().filter( $-> $.getTopic().equals("topic-one")).findFirst().orElseThrow(Exception::new);
 
         Assertions.assertNotNull(consumer);
-        Assertions.assertEquals("topic-one", consumer.getTopic());
     }
 
     @Test
