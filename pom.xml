@@ -23,6 +23,7 @@
 		<testcontainers.version>1.14.3</testcontainers.version>
 		<junit-jupiter.version>5.6.2</junit-jupiter.version>
 		<awaitility.version>4.0.3</awaitility.version>
+		<reactor.core.version>3.3.6.RELEASE</reactor.core.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -38,6 +39,13 @@
 			<version>${apache.pulsar.client.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-core</artifactId>
+			<version>${reactor.core.version}</version>
+		</dependency>
+
+		<!--	TESTS	-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -63,7 +71,6 @@
 			<scope>test</scope>
 		</dependency>
 
-        <!--	Pulsar integration tests	-->
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>testcontainers</artifactId>

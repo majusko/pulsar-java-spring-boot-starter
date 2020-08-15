@@ -64,11 +64,11 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
     @Test
     void testConsumerRegistration1() throws Exception {
-        final List<Consumer> consumers = consumerBuilder.getConsumers();
+        final List<Consumer<?>> consumers = consumerBuilder.getConsumers();
 
         Assertions.assertEquals(1, consumers.size());
 
-        final Consumer consumer = consumers.stream().findFirst().orElseThrow(Exception::new);
+        final Consumer<?> consumer = consumers.stream().findFirst().orElseThrow(Exception::new);
 
         Assertions.assertNotNull(consumer);
         Assertions.assertEquals("topic-one", consumer.getTopic());
