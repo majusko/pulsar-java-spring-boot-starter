@@ -32,3 +32,5 @@ build/
 
 #Mac
 .DS_Store
+
+my-settings.xml
