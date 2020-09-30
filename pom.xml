@@ -34,6 +34,13 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<scope>compile</scope>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
 			<groupId>org.apache.pulsar</groupId>
 			<artifactId>pulsar-client-original</artifactId>
 			<version>${apache.pulsar.client.version}</version>
