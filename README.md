@@ -78,30 +78,30 @@ class MyConsumer {
 
 Default configuration:
 ```properties
-pulsar.serviceUrl=pulsar://localhost:6650
-pulsar.ioThreads=10
-pulsar.listenerThreads=10
-pulsar.isEnableTcpNoDelay=false
-pulsar.keepAliveIntervalSec=20
-pulsar.connectionTimeoutSec=10
-pulsar.operationTimeoutSec=15
-pulsar.startingBackoffIntervalMs=100
-pulsar.maxBackoffIntervalSec=10
-pulsar.consumerNameDelimiter=
+pulsar.service-url=pulsar://localhost:6650
+pulsar.io-threads=10
+pulsar.listener-threads=10
+pulsar.enable-tcp-no-delay=false
+pulsar.keep-alive-interval-sec=20
+pulsar.connection-timeout-sec=10
+pulsar.operation-timeout-sec=15
+pulsar.starting-backoff-interval-ms=100
+pulsar.max-backoff-interval-sec=10
+pulsar.consumer-name-delimiter=
 ```
 
 Properties explained:
 
-- `pulsar.serviceUrl` - URL used to connect to pulsar cluster.
-- `pulsar.ioThreads` - Number of threads to be used for handling connections to brokers.
-- `pulsar.listenerThreads` - Set the number of threads to be used for message listeners/subscribers.
-- `pulsar.isEnableTcpNoDelay` -  Whether to use TCP no-delay flag on the connection, to disable Nagle algorithm.
-- `pulsar.keepAliveInterval` - Keep alive interval for each client-broker-connection.
-- `pulsar.connectionTimeoutSec` - duration of time to wait for a connection to a broker to be established. If the duration passes without a response from the broker, the connection attempt is dropped.
-- `pulsar.operationTimeoutSec` - Operation timeout.
-- `pulsar.startingBackoffIntervalMs` - Duration of time for a backoff interval (Retry algorithm).
-- `pulsar.maxBackoffIntervalSec` - The maximum duration of time for a backoff interval (Retry algorithm).
-- `pulsar.consumerNameDelimiter` - Consumer names are connection of bean name and method with a delimiter. By default there is no delimiter and words are connected together.
+- `pulsar.service-url` - URL used to connect to pulsar cluster.
+- `pulsar.io-threads` - Number of threads to be used for handling connections to brokers.
+- `pulsar.listener-threads` - Set the number of threads to be used for message listeners/subscribers.
+- `pulsar.enable-tcp-no-delay` -  Whether to use TCP no-delay flag on the connection, to disable Nagle algorithm.
+- `pulsar.keep-alive-interval-sec` - Keep alive interval for each client-broker-connection.
+- `pulsar.connection-timeout-sec` - duration of time to wait for a connection to a broker to be established. If the duration passes without a response from the broker, the connection attempt is dropped.
+- `pulsar.operation-timeout-sec` - Operation timeout.
+- `pulsar.starting-backoff-interval-ms` - Duration of time for a backoff interval (Retry algorithm).
+- `pulsar.max-backoff-interval-sec` - The maximum duration of time for a backoff interval (Retry algorithm).
+- `pulsar.consumer-name-delimiter` - Consumer names are connection of bean name and method with a delimiter. By default there is no delimiter and words are connected together.
 
 ## Contributing
 
