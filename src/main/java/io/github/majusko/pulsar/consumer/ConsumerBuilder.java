@@ -8,8 +8,10 @@ import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.Schema;
+import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringValueResolver;
 import reactor.core.Disposable;
 import reactor.core.publisher.EmitterProcessor;
 
@@ -20,12 +22,13 @@ import java.util.stream.Collectors;
 
 @Component
 @DependsOn({"pulsarClient", "consumerCollector"})
-public class ConsumerBuilder {
+public class ConsumerBuilder implements EmbeddedValueResolverAware {
 
     private final EmitterProcessor<FailedMessage> exceptionEmitter = EmitterProcessor.create();
     private final ConsumerCollector consumerCollector;
     private final PulsarClient pulsarClient;
 
+    private StringValueResolver stringValueResolver;
     private List<Consumer> consumers;
 
     public ConsumerBuilder(ConsumerCollector consumerCollector, PulsarClient pulsarClient) {
@@ -46,7 +49,7 @@ public class ConsumerBuilder {
                 .newConsumer(Schema.JSON(holder.getAnnotation().clazz()))
                 .consumerName("consumer-" + name)
                 .subscriptionName("subscription-" + name)
-                .topic(holder.getAnnotation().topic())
+                .topic(stringValueResolver.resolveStringValue(holder.getAnnotation().topic()))
                 .subscriptionType(holder.getAnnotation().subscriptionType())
                 .messageListener((consumer, msg) -> {
                     try {
@@ -72,5 +75,10 @@ public class ConsumerBuilder {
 
     public Disposable onError(java.util.function.Consumer<? super FailedMessage> consumer) {
         return exceptionEmitter.subscribe(consumer);
+    }
+
+    @Override
+    public void setEmbeddedValueResolver(StringValueResolver stringValueResolver) {
+        this.stringValueResolver = stringValueResolver;
     }
 }
