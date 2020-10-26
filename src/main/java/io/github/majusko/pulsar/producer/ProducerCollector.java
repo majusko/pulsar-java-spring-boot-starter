@@ -1,5 +1,6 @@
 package io.github.majusko.pulsar.producer;
 
+import com.google.protobuf.GeneratedMessageV3;
 import io.github.majusko.pulsar.annotation.PulsarProducer;
 import io.github.majusko.pulsar.collector.ProducerHolder;
 import io.github.majusko.pulsar.constant.Serialization;
@@ -57,6 +58,9 @@ public class ProducerCollector implements BeanPostProcessor {
     private <T> Schema<?> getSchema(ProducerHolder holder) throws RuntimeException {
         if (holder.getSerialization().equals(Serialization.JSON)) {
             return Schema.JSON(holder.getClazz());
+        }
+        if (holder.getSerialization().equals(Serialization.PROTOBUF)) {
+            return Schema.PROTOBUF((Class<? extends GeneratedMessageV3>)holder.getClazz());
         }
         throw new ProducerInitException("Unknown producer schema.");
     }

@@ -1,7 +1,10 @@
 package io.github.majusko.pulsar.consumer;
 
+import com.google.protobuf.GeneratedMessageV3;
+import io.github.majusko.pulsar.annotation.PulsarConsumer;
 import io.github.majusko.pulsar.collector.ConsumerCollector;
 import io.github.majusko.pulsar.collector.ConsumerHolder;
+import io.github.majusko.pulsar.constant.Serialization;
 import io.github.majusko.pulsar.error.FailedMessage;
 import io.github.majusko.pulsar.error.exception.ConsumerInitException;
 import org.apache.pulsar.client.api.Consumer;
@@ -46,7 +49,7 @@ public class ConsumerBuilder implements EmbeddedValueResolverAware {
     private Consumer<?> subscribe(String name, ConsumerHolder holder) {
         try {
             return pulsarClient
-                .newConsumer(Schema.JSON(holder.getAnnotation().clazz()))
+                .newConsumer(getSchema(holder.getAnnotation()))
                 .consumerName("consumer-" + name)
                 .subscriptionName("subscription-" + name)
                 .topic(stringValueResolver.resolveStringValue(holder.getAnnotation().topic()))
@@ -66,6 +69,16 @@ public class ConsumerBuilder implements EmbeddedValueResolverAware {
                 }).subscribe();
         } catch (PulsarClientException e) {
             throw new ConsumerInitException("Failed to init consumer.", e);
+        }
+    }
+
+    private Schema<?> getSchema(PulsarConsumer consumer) {
+        switch (consumer.serialization()) {
+            case PROTOBUF:
+                return Schema.PROTOBUF((Class<? extends GeneratedMessageV3>)consumer.clazz());
+            case JSON:
+            default:
+                return Schema.JSON(consumer.clazz());
         }
     }
 
