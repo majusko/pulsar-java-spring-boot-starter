@@ -23,7 +23,7 @@
 		<testcontainers.version>1.14.3</testcontainers.version>
 		<junit-jupiter.version>5.7.0</junit-jupiter.version>
 		<awaitility.version>4.0.3</awaitility.version>
-		<reactor.core.version>3.3.10.RELEASE</reactor.core.version>
+		<reactor.core.version>3.4.0</reactor.core.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
