@@ -21,11 +21,9 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import static org.awaitility.Awaitility.await;
 
@@ -84,13 +82,15 @@ class PulsarJavaSpringBootStarterApplicationTests {
     @Test
     void testConsumerRegistration2() {
         final Class<TestConsumers> clazz = TestConsumers.class;
-        final String descriptor = clazz.getName() + clazz.getMethods()[0].getName();
-        final ConsumerHolder consumerHolder = consumerCollector.getConsumer(descriptor).orElse(null);
+        final List<ConsumerHolder> consumerHolders = Arrays.stream(clazz.getMethods())
+            .map($ -> consumerCollector.getConsumer(clazz.getName() + $.getName()).orElse(null))
+            .collect(Collectors.toList());
 
-        Assertions.assertNotNull(consumerHolder);
-        Assertions.assertEquals("topic-one", consumerHolder.getAnnotation().topic());
-        Assertions.assertEquals(TestConsumers.class, consumerHolder.getBean().getClass());
-        Assertions.assertEquals("topicOneListener", consumerHolder.getHandler().getName());
+        Assertions.assertNotNull(consumerHolders);
+        Assertions.assertTrue(consumerHolders.stream().anyMatch($ -> $.getAnnotation().topic().equals("topic-one")));
+        Assertions.assertTrue(consumerHolders.stream().anyMatch($ -> $.getAnnotation().topic().equals("topic-for-error")));
+        Assertions.assertTrue(consumerHolders.stream().anyMatch($ -> $.getBean().getClass().equals(TestConsumers.class)));
+        Assertions.assertTrue(consumerHolders.stream().anyMatch($ -> $.getHandler().getName().equals("topicOneListener")));
     }
 
     @Test
