@@ -20,6 +20,7 @@ import org.testcontainers.containers.PulsarContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,9 @@ class PulsarJavaSpringBootStarterApplicationTests {
     @Autowired
     private PulsarTemplate<String> producerForError;
 
+    @Autowired
+    private PulsarTemplate<AvroMsg> producerForAvroTopic;
+
     @Container
     static PulsarContainer pulsarContainer = new PulsarContainer();
 
@@ -70,7 +74,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void testConsumerRegistration1() throws Exception {
         final List<Consumer> consumers = consumerBuilder.getConsumers();
 
-        Assertions.assertEquals(2, consumers.size());
+        Assertions.assertEquals(3, consumers.size());
 
         final Consumer<?> consumer = consumers.stream().filter( $-> $.getTopic().equals("topic-one")).findFirst().orElseThrow(Exception::new);
 
@@ -94,7 +98,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         final Map<String, ImmutablePair<Class<?>, Serialization>> topics = producerFactory.getTopics();
 
-        Assertions.assertEquals(3, topics.size());
+        Assertions.assertEquals(4, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
@@ -118,5 +122,13 @@ class PulsarJavaSpringBootStarterApplicationTests {
         });
 
         await().untilTrue(receivedError);
+    }
+
+    @Test
+    void avroSerializationTestOk() throws Exception {
+        AvroMsg testAvroMsg = new AvroMsg();
+        testAvroMsg.setData("avro-test");
+        producerForAvroTopic.send("topic-avro", testAvroMsg);
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.avroTopicReceived.get());
     }
 }

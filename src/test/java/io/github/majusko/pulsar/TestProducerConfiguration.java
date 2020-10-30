@@ -13,6 +13,7 @@ public class TestProducerConfiguration {
         return new ProducerFactory()
             .addProducer("topic-for-error", String.class)
             .addProducer("topic-one", MyMsg.class)
-            .addProducer("topic-two", MyMsg2.class, Serialization.JSON);
+            .addProducer("topic-two", MyMsg2.class, Serialization.JSON)
+            .addProducer("topic-avro", AvroMsg.class, Serialization.AVRO);
     }
 }

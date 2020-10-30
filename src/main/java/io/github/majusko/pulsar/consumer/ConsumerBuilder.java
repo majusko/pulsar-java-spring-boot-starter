@@ -1,5 +1,6 @@
 package io.github.majusko.pulsar.consumer;
 
+import io.github.majusko.pulsar.PulsarSpringStarterUtils;
 import io.github.majusko.pulsar.collector.ConsumerCollector;
 import io.github.majusko.pulsar.collector.ConsumerHolder;
 import io.github.majusko.pulsar.error.FailedMessage;
@@ -7,7 +8,6 @@ import io.github.majusko.pulsar.error.exception.ConsumerInitException;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
-import org.apache.pulsar.client.api.Schema;
 import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
@@ -46,7 +46,7 @@ public class ConsumerBuilder implements EmbeddedValueResolverAware {
     private Consumer<?> subscribe(String name, ConsumerHolder holder) {
         try {
             return pulsarClient
-                .newConsumer(Schema.JSON(holder.getAnnotation().clazz()))
+                .newConsumer(PulsarSpringStarterUtils.getSchema(holder.getAnnotation().serialization(), holder.getAnnotation().clazz()))
                 .consumerName("consumer-" + name)
                 .subscriptionName("subscription-" + name)
                 .topic(stringValueResolver.resolveStringValue(holder.getAnnotation().topic()))

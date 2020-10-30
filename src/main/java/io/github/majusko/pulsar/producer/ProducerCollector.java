@@ -1,8 +1,8 @@
 package io.github.majusko.pulsar.producer;
 
+import io.github.majusko.pulsar.PulsarSpringStarterUtils;
 import io.github.majusko.pulsar.annotation.PulsarProducer;
 import io.github.majusko.pulsar.collector.ProducerHolder;
-import io.github.majusko.pulsar.constant.Serialization;
 import io.github.majusko.pulsar.error.exception.ProducerInitException;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
@@ -55,10 +55,7 @@ public class ProducerCollector implements BeanPostProcessor {
     }
 
     private <T> Schema<?> getSchema(ProducerHolder holder) throws RuntimeException {
-        if (holder.getSerialization().equals(Serialization.JSON)) {
-            return Schema.JSON(holder.getClazz());
-        }
-        throw new ProducerInitException("Unknown producer schema.");
+        return PulsarSpringStarterUtils.getSchema(holder.getSerialization(), holder.getClazz());
     }
 
     Map<String, Producer> getProducers() {
