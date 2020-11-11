@@ -69,6 +69,25 @@ class PulsarJavaSpringBootStarterApplicationTests {
     }
 
     @Test
+    void testProducerSendAsyncMethod() throws PulsarClientException {
+        producer.sendAsync("topic-async", new MyMsg("async")).thenAccept(messageId -> {
+            Assertions.assertNotNull(messageId);
+        });
+
+        await().untilTrue(testConsumers.mockTopicAsyncListenerReceived);
+    }
+
+    @Test
+    void testProducerCreateMessageMethod() throws PulsarClientException {
+        producer.createMessage("topic-message", new MyMsg("my-message"))
+                .property("my-key", "my-value")
+                .property("my-other-key", "my-other-value")
+                .send();
+
+        await().untilTrue(testConsumers.mockTopicMessageListenerReceived);
+    }
+
+    @Test
     void testConsumerRegistration1() throws Exception {
         final List<Consumer> consumers = consumerBuilder.getConsumers();
 
