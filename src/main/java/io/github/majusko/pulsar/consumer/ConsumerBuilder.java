@@ -1,5 +1,6 @@
 package io.github.majusko.pulsar.consumer;
 
+import io.github.majusko.pulsar.PulsarMessage;
 import io.github.majusko.pulsar.PulsarSpringStarterUtils;
 import io.github.majusko.pulsar.collector.ConsumerCollector;
 import io.github.majusko.pulsar.collector.ConsumerHolder;
@@ -54,9 +55,25 @@ public class ConsumerBuilder implements EmbeddedValueResolverAware {
                 .messageListener((consumer, msg) -> {
                     try {
                         final Method method = holder.getHandler();
-
                         method.setAccessible(true);
-                        method.invoke(holder.getBean(), msg.getValue());
+
+                        if(holder.isWrapped()) {
+                            PulsarMessage pulsarMessage = new PulsarMessage();
+                            pulsarMessage.setValue(msg.getValue());
+                            pulsarMessage.setMessageId(msg.getMessageId());
+                            pulsarMessage.setSequenceId(msg.getSequenceId());
+                            pulsarMessage.setProperties(msg.getProperties());
+                            pulsarMessage.setTopicName(msg.getTopicName());
+                            pulsarMessage.setKey(msg.getKey());
+                            pulsarMessage.setEventTime(msg.getEventTime());
+                            pulsarMessage.setPublishTime(msg.getPublishTime());
+                            pulsarMessage.setProducerName(msg.getProducerName());
+
+                            method.invoke(holder.getBean(), pulsarMessage);
+                        }
+                        else {
+                            method.invoke(holder.getBean(), msg.getValue());
+                        }
 
                         consumer.acknowledge(msg);
                     } catch (Exception e) {

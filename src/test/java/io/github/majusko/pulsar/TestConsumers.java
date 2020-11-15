@@ -11,6 +11,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class TestConsumers {
 
     public AtomicBoolean mockTopicListenerReceived = new AtomicBoolean(false);
+    public AtomicBoolean mockTopicAsyncListenerReceived = new AtomicBoolean(false);
+    public AtomicBoolean mockTopicMessageListenerReceived = new AtomicBoolean(false);
     public AtomicBoolean avroTopicReceived = new AtomicBoolean(false);
 
     @PulsarConsumer(topic = "topic-one", clazz = MyMsg.class, serialization = Serialization.JSON)
@@ -27,5 +29,24 @@ public class TestConsumers {
     public void avroTopic(AvroMsg avroMsg) {
         Assertions.assertNotNull(avroMsg);
         avroTopicReceived.set(true);
+    }
+
+    @PulsarConsumer(topic = "topic-async", clazz = MyMsg.class, serialization = Serialization.JSON)
+    public void topicAsyncListener(MyMsg myMsg) {
+        Assertions.assertNotNull(myMsg);
+        mockTopicAsyncListenerReceived.set(true);
+    }
+
+    @PulsarConsumer(topic = "topic-message", clazz = MyMsg.class, serialization = Serialization.JSON)
+    public void topicMessageListener(PulsarMessage<MyMsg> myMsg) {
+        Assertions.assertNotNull(myMsg);
+        Assertions.assertNotNull(myMsg.getProducerName());
+        Assertions.assertNotNull(myMsg.getProperties());
+        Assertions.assertNotNull(myMsg.getKey());
+        Assertions.assertNotNull(myMsg.getSequenceId());
+        Assertions.assertNotNull(myMsg.getPublishTime());
+        Assertions.assertNotNull(myMsg.getTopicName());
+        Assertions.assertNotNull(myMsg.getMessageId());
+        mockTopicMessageListenerReceived.set(true);
     }
 }
