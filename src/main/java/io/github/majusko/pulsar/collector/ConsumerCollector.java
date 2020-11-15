@@ -1,5 +1,6 @@
 package io.github.majusko.pulsar.collector;
 
+import io.github.majusko.pulsar.PulsarSpringStarterUtils;
 import io.github.majusko.pulsar.annotation.PulsarConsumer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -10,6 +11,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+
+import static io.github.majusko.pulsar.PulsarSpringStarterUtils.getParameterType;
 
 @Configuration
 public class ConsumerCollector implements BeanPostProcessor {
@@ -27,7 +30,7 @@ public class ConsumerCollector implements BeanPostProcessor {
             .filter($ -> $.isAnnotationPresent(PulsarConsumer.class))
             .collect(Collectors.toMap(
                 method -> beanClass.getName() + consumerNameDelimiter + method.getName(),
-                method -> new ConsumerHolder(method.getAnnotation(PulsarConsumer.class), method, bean))));
+                method -> new ConsumerHolder(method.getAnnotation(PulsarConsumer.class), method, bean, getParameterType(method)))));
 
         return bean;
     }

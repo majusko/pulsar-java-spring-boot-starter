@@ -91,7 +91,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void testConsumerRegistration1() throws Exception {
         final List<Consumer> consumers = consumerBuilder.getConsumers();
 
-        Assertions.assertEquals(3, consumers.size());
+        Assertions.assertEquals(5, consumers.size());
 
         final Consumer<?> consumer = consumers.stream().filter( $-> $.getTopic().equals("topic-one")).findFirst().orElseThrow(Exception::new);
 
@@ -117,7 +117,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         final Map<String, ImmutablePair<Class<?>, Serialization>> topics = producerFactory.getTopics();
 
-        Assertions.assertEquals(4, topics.size());
+        Assertions.assertEquals(6, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
