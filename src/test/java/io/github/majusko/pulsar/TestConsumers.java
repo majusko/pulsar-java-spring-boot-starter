@@ -40,6 +40,13 @@ public class TestConsumers {
     @PulsarConsumer(topic = "topic-message", clazz = MyMsg.class, serialization = Serialization.JSON)
     public void topicMessageListener(PulsarMessage<MyMsg> myMsg) {
         Assertions.assertNotNull(myMsg);
+        Assertions.assertNotNull(myMsg.getProducerName());
+        Assertions.assertNotNull(myMsg.getProperties());
+        Assertions.assertNotNull(myMsg.getKey());
+        Assertions.assertNotNull(myMsg.getSequenceId());
+        Assertions.assertNotNull(myMsg.getPublishTime());
+        Assertions.assertNotNull(myMsg.getTopicName());
+        Assertions.assertNotNull(myMsg.getMessageId());
         mockTopicMessageListenerReceived.set(true);
     }
 }
