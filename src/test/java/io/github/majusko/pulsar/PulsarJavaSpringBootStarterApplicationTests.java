@@ -82,6 +82,8 @@ class PulsarJavaSpringBootStarterApplicationTests {
         producer.createMessage("topic-message", new MyMsg("my-message"))
                 .property("my-key", "my-value")
                 .property("my-other-key", "my-other-value")
+                .sequenceId(123l)
+                .key("my-key")
                 .send();
 
         await().untilTrue(testConsumers.mockTopicMessageListenerReceived);

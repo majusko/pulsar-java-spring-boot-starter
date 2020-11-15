@@ -60,8 +60,15 @@ public class ConsumerBuilder implements EmbeddedValueResolverAware {
                         if(holder.isWrapped()) {
                             PulsarMessage pulsarMessage = new PulsarMessage();
                             pulsarMessage.setValue(msg.getValue());
+                            pulsarMessage.setMessageId(msg.getMessageId());
+                            pulsarMessage.setSequenceId(msg.getSequenceId());
+                            pulsarMessage.setProperties(msg.getProperties());
                             pulsarMessage.setTopicName(msg.getTopicName());
                             pulsarMessage.setKey(msg.getKey());
+                            pulsarMessage.setEventTime(msg.getEventTime());
+                            pulsarMessage.setPublishTime(msg.getPublishTime());
+                            pulsarMessage.setProducerName(msg.getProducerName());
+
                             method.invoke(holder.getBean(), pulsarMessage);
                         }
                         else {
