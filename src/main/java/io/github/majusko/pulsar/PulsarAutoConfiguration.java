@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 @ComponentScan
-@EnableConfigurationProperties(PulsarProperties.class)
+@EnableConfigurationProperties({PulsarProperties.class, ConsumerProperties.class})
 public class PulsarAutoConfiguration {
 
     private final PulsarProperties pulsarProperties;

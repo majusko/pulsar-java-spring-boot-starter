@@ -16,6 +16,7 @@ public class TestProducerConfiguration {
             .addProducer("topic-two", MyMsg2.class, Serialization.JSON)
             .addProducer("topic-avro", AvroMsg.class, Serialization.AVRO)
             .addProducer("topic-async", MyMsg.class)
-            .addProducer("topic-message", MyMsg.class);
+            .addProducer("topic-message", MyMsg.class)
+            .addProducer("topic-retry", MyMsg.class);
     }
 }

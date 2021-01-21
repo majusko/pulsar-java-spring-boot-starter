@@ -2,10 +2,12 @@ package io.github.majusko.pulsar;
 
 import io.github.majusko.pulsar.annotation.PulsarConsumer;
 import io.github.majusko.pulsar.constant.Serialization;
+import org.apache.pulsar.client.api.SubscriptionType;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class TestConsumers {
@@ -14,6 +16,8 @@ public class TestConsumers {
     public AtomicBoolean mockTopicAsyncListenerReceived = new AtomicBoolean(false);
     public AtomicBoolean mockTopicMessageListenerReceived = new AtomicBoolean(false);
     public AtomicBoolean avroTopicReceived = new AtomicBoolean(false);
+    public AtomicBoolean mockRetryCountListenerReceived = new AtomicBoolean(false);
+    public AtomicInteger retryCount = new AtomicInteger(0);
 
     @PulsarConsumer(topic = "topic-one", clazz = MyMsg.class, serialization = Serialization.JSON)
     public void topicOneListener(MyMsg myMsg) {
@@ -48,5 +52,16 @@ public class TestConsumers {
         Assertions.assertNotNull(myMsg.getTopicName());
         Assertions.assertNotNull(myMsg.getMessageId());
         mockTopicMessageListenerReceived.set(true);
+    }
+
+    @PulsarConsumer(topic = "topic-retry", clazz = MyMsg.class, maxRedeliverCount = 3, subscriptionType = SubscriptionType.Shared)
+    public void failTwice(MyMsg myMsg) throws Exception {
+        int retryAttempt = retryCount.getAndIncrement();
+
+        if(retryAttempt < 2) {
+            throw new Exception("Expected msg fail.");
+        }
+        Assertions.assertNotNull(myMsg);
+        mockRetryCountListenerReceived.set(true);
     }
 }

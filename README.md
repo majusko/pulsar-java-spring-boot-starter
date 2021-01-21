@@ -78,6 +78,8 @@ class MyConsumer {
 
 Default configuration:
 ```properties
+
+#PulsarClient
 pulsar.service-url=pulsar://localhost:6650
 pulsar.io-threads=10
 pulsar.listener-threads=10
@@ -88,6 +90,11 @@ pulsar.operation-timeout-sec=15
 pulsar.starting-backoff-interval-ms=100
 pulsar.max-backoff-interval-sec=10
 pulsar.consumer-name-delimiter=
+
+#Consumer
+pulsar.consumer.default.dead-letter-policy-max-redeliver-count=-1
+pulsar.consumer.default.ack-timeout-ms=30
+
 ```
 
 Properties explained:
@@ -101,7 +108,24 @@ Properties explained:
 - `pulsar.operation-timeout-sec` - Operation timeout.
 - `pulsar.starting-backoff-interval-ms` - Duration of time for a backoff interval (Retry algorithm).
 - `pulsar.max-backoff-interval-sec` - The maximum duration of time for a backoff interval (Retry algorithm).
-- `pulsar.consumer-name-delimiter` - Consumer names are connection of bean name and method with a delimiter. By default there is no delimiter and words are connected together.
+- `pulsar.consumer-name-delimiter` - Consumer names are connection of bean name and method with a delimiter. By default, there is no delimiter and words are connected together.
+- `pulsar.consumer.default.dead-letter-policy-max-redeliver-count` - How many times should pulsar try to retry sending the message to consumer.
+- `pulsar.consumer.default.ack-timeout-ms` - How soon should be the message acked and how soon will dead letter mechanism try to retry to send the message.
+
+### Additional usages
+
+In case you need to access pulsar metadata you simply use `PulsarMessage` as a wrapper and data will be injected for you.
+
+```java
+@Service
+class MyConsumer {
+    
+    @PulsarConsumer(topic="my-topic", clazz=MyMsg.class)
+    void consume(PulsarMessage<MyMsg> myMsg) { 
+        producer.send(TOPIC, msg.getValue()); 
+    }
+}
+```
 
 ## Contributing
 
