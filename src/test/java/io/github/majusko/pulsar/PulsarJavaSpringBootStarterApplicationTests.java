@@ -3,7 +3,7 @@ package io.github.majusko.pulsar;
 import io.github.majusko.pulsar.collector.ConsumerCollector;
 import io.github.majusko.pulsar.collector.ConsumerHolder;
 import io.github.majusko.pulsar.constant.Serialization;
-import io.github.majusko.pulsar.consumer.ConsumerBuilder;
+import io.github.majusko.pulsar.consumer.ConsumerAggregator;
 import io.github.majusko.pulsar.producer.ProducerFactory;
 import io.github.majusko.pulsar.producer.PulsarTemplate;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -14,11 +14,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PulsarContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import reactor.core.Disposable;
 
 import java.time.Duration;
 import java.util.*;
@@ -27,13 +29,14 @@ import java.util.stream.Collectors;
 
 import static org.awaitility.Awaitility.await;
 
+@ActiveProfiles("test")
 @SpringBootTest
 @Import({TestProducerConfiguration.class, TestConsumers.class})
 @Testcontainers
 class PulsarJavaSpringBootStarterApplicationTests {
 
     @Autowired
-    private ConsumerBuilder consumerBuilder;
+    private ConsumerAggregator consumerAggregator;
 
     @Autowired
     private ConsumerCollector consumerCollector;
@@ -69,6 +72,16 @@ class PulsarJavaSpringBootStarterApplicationTests {
     }
 
     @Test
+    void testBasicDeadLetterRetryPolicy() throws PulsarClientException {
+
+        producer.send("topic-retry", new MyMsg("bb"));
+
+        await().untilTrue(testConsumers.mockRetryCountListenerReceived);
+
+        Assertions.assertEquals(3, testConsumers.retryCount.get());
+    }
+
+    @Test
     void testProducerSendAsyncMethod() throws PulsarClientException {
         producer.sendAsync("topic-async", new MyMsg("async")).thenAccept(messageId -> {
             Assertions.assertNotNull(messageId);
@@ -91,9 +104,9 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
     @Test
     void testConsumerRegistration1() throws Exception {
-        final List<Consumer> consumers = consumerBuilder.getConsumers();
+        final List<Consumer> consumers = consumerAggregator.getConsumers();
 
-        Assertions.assertEquals(5, consumers.size());
+        Assertions.assertEquals(6, consumers.size());
 
         final Consumer<?> consumer = consumers.stream().filter( $-> $.getTopic().equals("topic-one")).findFirst().orElseThrow(Exception::new);
 
@@ -119,7 +132,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         final Map<String, ImmutablePair<Class<?>, Serialization>> topics = producerFactory.getTopics();
 
-        Assertions.assertEquals(6, topics.size());
+        Assertions.assertEquals(7, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
@@ -131,10 +144,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void testMessageErrorHandling() throws PulsarClientException {
         final AtomicBoolean receivedError = new AtomicBoolean(false);
         final String messageToSend = "This message will never arrive.";
-
-        producerForError.send("topic-for-error", messageToSend);
-
-        consumerBuilder.onError(($) -> {
+        final Disposable disposable = consumerAggregator.onError(($) -> {
             Assertions.assertEquals($.getConsumer().getTopic(), "topic-for-error");
             Assertions.assertEquals($.getMessage().getValue(), messageToSend);
             Assertions.assertNotNull($.getException());
@@ -142,7 +152,11 @@ class PulsarJavaSpringBootStarterApplicationTests {
             receivedError.set(true);
         });
 
+        producerForError.send("topic-for-error", messageToSend);
+
         await().untilTrue(receivedError);
+
+        disposable.dispose();
     }
 
     @Test

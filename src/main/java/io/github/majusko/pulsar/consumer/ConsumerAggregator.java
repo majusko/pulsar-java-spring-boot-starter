@@ -1,14 +1,13 @@
 package io.github.majusko.pulsar.consumer;
 
+import io.github.majusko.pulsar.ConsumerProperties;
 import io.github.majusko.pulsar.PulsarMessage;
 import io.github.majusko.pulsar.PulsarSpringStarterUtils;
 import io.github.majusko.pulsar.collector.ConsumerCollector;
 import io.github.majusko.pulsar.collector.ConsumerHolder;
 import io.github.majusko.pulsar.error.FailedMessage;
 import io.github.majusko.pulsar.error.exception.ConsumerInitException;
-import org.apache.pulsar.client.api.Consumer;
-import org.apache.pulsar.client.api.PulsarClient;
-import org.apache.pulsar.client.api.PulsarClientException;
+import org.apache.pulsar.client.api.*;
 import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
@@ -19,22 +18,26 @@ import reactor.core.publisher.EmitterProcessor;
 import javax.annotation.PostConstruct;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Component
 @DependsOn({"pulsarClient", "consumerCollector"})
-public class ConsumerBuilder implements EmbeddedValueResolverAware {
+public class ConsumerAggregator implements EmbeddedValueResolverAware {
 
     private final EmitterProcessor<FailedMessage> exceptionEmitter = EmitterProcessor.create();
     private final ConsumerCollector consumerCollector;
     private final PulsarClient pulsarClient;
+    private final ConsumerProperties consumerProperties;
 
     private StringValueResolver stringValueResolver;
     private List<Consumer> consumers;
 
-    public ConsumerBuilder(ConsumerCollector consumerCollector, PulsarClient pulsarClient) {
+    public ConsumerAggregator(ConsumerCollector consumerCollector, PulsarClient pulsarClient,
+                              ConsumerProperties consumerProperties) {
         this.consumerCollector = consumerCollector;
         this.pulsarClient = pulsarClient;
+        this.consumerProperties = consumerProperties;
     }
 
     @PostConstruct
@@ -46,8 +49,9 @@ public class ConsumerBuilder implements EmbeddedValueResolverAware {
 
     private Consumer<?> subscribe(String name, ConsumerHolder holder) {
         try {
-            return pulsarClient
-                .newConsumer(PulsarSpringStarterUtils.getSchema(holder.getAnnotation().serialization(), holder.getAnnotation().clazz()))
+            final ConsumerBuilder<?> clientBuilder = pulsarClient
+                .newConsumer(PulsarSpringStarterUtils.getSchema(holder.getAnnotation().serialization(),
+                    holder.getAnnotation().clazz()))
                 .consumerName("consumer-" + name)
                 .subscriptionName("subscription-" + name)
                 .topic(stringValueResolver.resolveStringValue(holder.getAnnotation().topic()))
@@ -57,7 +61,7 @@ public class ConsumerBuilder implements EmbeddedValueResolverAware {
                         final Method method = holder.getHandler();
                         method.setAccessible(true);
 
-                        if(holder.isWrapped()) {
+                        if (holder.isWrapped()) {
                             PulsarMessage pulsarMessage = new PulsarMessage();
                             pulsarMessage.setValue(msg.getValue());
                             pulsarMessage.setMessageId(msg.getMessageId());
@@ -70,8 +74,7 @@ public class ConsumerBuilder implements EmbeddedValueResolverAware {
                             pulsarMessage.setProducerName(msg.getProducerName());
 
                             method.invoke(holder.getBean(), pulsarMessage);
-                        }
-                        else {
+                        } else {
                             method.invoke(holder.getBean(), msg.getValue());
                         }
 
@@ -80,7 +83,29 @@ public class ConsumerBuilder implements EmbeddedValueResolverAware {
                         consumer.negativeAcknowledge(msg);
                         exceptionEmitter.onNext(new FailedMessage(e, consumer, msg));
                     }
-                }).subscribe();
+                });
+
+            if (consumerProperties.getDeadLetterPolicyMaxRedeliverCount() >= 0) {
+                clientBuilder.deadLetterPolicy(DeadLetterPolicy.builder().maxRedeliverCount(consumerProperties.getDeadLetterPolicyMaxRedeliverCount()).build());
+            }
+
+            if (consumerProperties.getAckTimeoutMs() > 0) {
+                clientBuilder.ackTimeout(consumerProperties.getAckTimeoutMs(), TimeUnit.MILLISECONDS);
+            }
+
+            if (holder.getAnnotation().maxRedeliverCount() >= 0) {
+                final DeadLetterPolicy.DeadLetterPolicyBuilder deadLetterBuilder = DeadLetterPolicy.builder();
+
+                deadLetterBuilder.maxRedeliverCount(holder.getAnnotation().maxRedeliverCount());
+
+                if (!holder.getAnnotation().deadLetterTopic().isEmpty()) {
+                    deadLetterBuilder.deadLetterTopic(holder.getAnnotation().deadLetterTopic());
+                }
+
+                clientBuilder.deadLetterPolicy(deadLetterBuilder.build());
+            }
+
+            return clientBuilder.subscribe();
         } catch (PulsarClientException e) {
             throw new ConsumerInitException("Failed to init consumer.", e);
         }

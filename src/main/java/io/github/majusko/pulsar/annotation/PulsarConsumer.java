@@ -12,7 +12,21 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface PulsarConsumer {
     String topic();
+
     Class<?> clazz();
+
     Serialization serialization() default Serialization.JSON;
+
     SubscriptionType subscriptionType() default SubscriptionType.Exclusive;
+
+    /**
+     * Maximum number of times that a message will be redelivered before being sent to the dead letter queue.
+     * Note: Currently, dead letter topic is enabled only in the shared subscription mode.
+     */
+    int maxRedeliverCount() default -1;
+
+    /**
+     * Name of the dead topic where the failing messages will be sent.
+     */
+    String deadLetterTopic() default "";
 }
