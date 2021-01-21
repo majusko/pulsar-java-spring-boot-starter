@@ -54,7 +54,7 @@ public class TestConsumers {
         mockTopicMessageListenerReceived.set(true);
     }
 
-    @PulsarConsumer(topic = "topic-retry", clazz = MyMsg.class, maxRedeliverCount = 3, subscriptionType = SubscriptionType.Shared)
+    @PulsarConsumer(topic = "topic-retry", clazz = MyMsg.class, maxRedeliverCount = 3, subscriptionType = SubscriptionType.Shared, deadLetterTopic = "dead-letter-topic")
     public void failTwice(MyMsg myMsg) throws Exception {
         int retryAttempt = retryCount.getAndIncrement();
 
