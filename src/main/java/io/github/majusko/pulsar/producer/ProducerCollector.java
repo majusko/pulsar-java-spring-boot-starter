@@ -55,7 +55,7 @@ public class ProducerCollector implements BeanPostProcessor {
     }
 
     private <T> Schema<?> getSchema(ProducerHolder holder) throws RuntimeException {
-        return PulsarSpringStarterUtils.getSchema(holder.getSerialization(), holder.getClazz());
+        return PulsarSpringStarterUtils.getGenericSchema(holder.getSerialization(), holder.getClazz());
     }
 
     Map<String, Producer> getProducers() {
