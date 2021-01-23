@@ -68,6 +68,14 @@ class MyConsumer {
 }
 ```
 
+#### 4. Minimal Configuration
+
+```properties
+
+pulsar.service-url=pulsar://localhost:6650
+
+```
+
 ## Example project
 
 #### [Java Pulsar Example Project](https://github.com/majusko/java-pulsar-example)
@@ -99,9 +107,9 @@ pulsar.consumer.default.ack-timeout-ms=30
 
 ```
 
-###Properties explained:
+### Properties explained:
 
-####PulsarClient
+#### PulsarClient
 - `pulsar.service-url` - URL used to connect to pulsar cluster.
 - `pulsar.io-threads` - Number of threads to be used for handling connections to brokers.
 - `pulsar.listener-threads` - Set the number of threads to be used for message listeners/subscribers.
@@ -115,7 +123,7 @@ pulsar.consumer.default.ack-timeout-ms=30
 - `pulsar.namespace` - Namespace separation. For example: app1/app2 OR dev/staging/prod. More in [Namespaces docs](https://pulsar.apache.org/docs/en/concepts-messaging/#namespaces).
 - `pulsar.tenant` - Pulsar multi-tenancy support. More in [Multi Tenancy docs](https://pulsar.apache.org/docs/en/concepts-multi-tenancy/).
 
-####Consumer
+#### Consumer
 - `pulsar.consumer.default.dead-letter-policy-max-redeliver-count` - How many times should pulsar try to retry sending the message to consumer.
 - `pulsar.consumer.default.ack-timeout-ms` - How soon should be the message acked and how soon will dead letter mechanism try to retry to send the message.
 
