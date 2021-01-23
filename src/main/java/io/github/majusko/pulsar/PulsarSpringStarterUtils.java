@@ -9,6 +9,9 @@ import java.lang.reflect.Method;
 
 public class PulsarSpringStarterUtils {
 
+    private PulsarSpringStarterUtils() {
+    }
+
     private static <T> Schema<?> getGenericSchema(Serialization serialization, Class<T> clazz) throws RuntimeException {
         switch (serialization) {
             case JSON: {
@@ -19,9 +22,6 @@ public class PulsarSpringStarterUtils {
             }
             case STRING: {
                 return Schema.STRING;
-            }
-            case BYTE: {
-                return Schema.BYTES;
             }
             default: {
                 throw new ProducerInitException("Unknown producer schema.");
