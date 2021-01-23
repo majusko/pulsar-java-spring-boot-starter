@@ -5,6 +5,5 @@ public enum Serialization {
     AVRO,
     STRING,
     BYTE,
-    PROTOBUF,
-    PROTOBUF_NATIVE
+    PROTOBUF
 }

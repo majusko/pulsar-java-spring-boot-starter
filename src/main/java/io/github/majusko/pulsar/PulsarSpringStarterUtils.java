@@ -30,21 +30,18 @@ public class PulsarSpringStarterUtils {
     }
 
     private static <T extends com.google.protobuf.GeneratedMessageV3> Schema<?> getProtoSchema(Serialization serialization, Class<T> clazz) throws RuntimeException {
-        switch (serialization) {
-            case PROTOBUF: {
-                return Schema.PROTOBUF(clazz);
-            }
-            case PROTOBUF_NATIVE: {
-                return Schema.PROTOBUF_NATIVE(clazz);
-            }
-            default: {
-                throw new ProducerInitException("Unknown producer schema.");
-            }
+        if (serialization == Serialization.PROTOBUF) {
+            return Schema.PROTOBUF(clazz);
         }
+        throw new ProducerInitException("Unknown producer schema.");
     }
 
     public static Schema<?> getSchema(Serialization serialisation, Class<?> clazz) {
-        if(isProto(serialisation)) {
+        if (clazz == byte[].class) {
+            return Schema.BYTES;
+        }
+
+        if (isProto(serialisation)) {
             return getProtoSchema(serialisation, (Class<? extends GeneratedMessageV3>) clazz);
         }
 
@@ -52,7 +49,7 @@ public class PulsarSpringStarterUtils {
     }
 
     public static boolean isProto(Serialization serialization) {
-        return serialization == Serialization.PROTOBUF || serialization == Serialization.PROTOBUF_NATIVE;
+        return serialization == Serialization.PROTOBUF;
     }
 
     public static Class<?> getParameterType(Method method) {

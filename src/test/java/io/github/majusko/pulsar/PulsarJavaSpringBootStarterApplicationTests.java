@@ -25,6 +25,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import reactor.core.Disposable;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -59,11 +60,19 @@ class PulsarJavaSpringBootStarterApplicationTests {
     @Autowired
     private PulsarTemplate<ProtoMsg> producerForProtoTopic;
 
+    @Autowired
+    private PulsarTemplate<byte[]> producerForByteTopic;
+
+    @Autowired
+    private PulsarTemplate<String> producerForStringTopic;
+
     @Container
     static PulsarContainer pulsarContainer = new PulsarContainer();
 
     @Autowired
     private TestConsumers testConsumers;
+
+    public static final String VALIDATION_STRING = "validation-string";
 
     @DynamicPropertySource
     static void propertySettings(DynamicPropertyRegistry registry) {
@@ -99,11 +108,11 @@ class PulsarJavaSpringBootStarterApplicationTests {
     @Test
     void testProducerCreateMessageMethod() throws PulsarClientException {
         producer.createMessage("topic-message", new MyMsg("my-message"))
-                .property("my-key", "my-value")
-                .property("my-other-key", "my-other-value")
-                .sequenceId(123l)
-                .key("my-key")
-                .send();
+            .property("my-key", "my-value")
+            .property("my-other-key", "my-other-value")
+            .sequenceId(123l)
+            .key("my-key")
+            .send();
 
         await().untilTrue(testConsumers.mockTopicMessageListenerReceived);
     }
@@ -112,9 +121,10 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void testConsumerRegistration1() throws Exception {
         final List<Consumer> consumers = consumerAggregator.getConsumers();
 
-        Assertions.assertEquals(6, consumers.size());
+        Assertions.assertEquals(9, consumers.size());
 
-        final Consumer<?> consumer = consumers.stream().filter( $-> $.getTopic().equals("topic-one")).findFirst().orElseThrow(Exception::new);
+        final Consumer<?> consumer =
+            consumers.stream().filter($ -> $.getTopic().equals("topic-one")).findFirst().orElseThrow(Exception::new);
 
         Assertions.assertNotNull(consumer);
     }
@@ -123,14 +133,18 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void testConsumerRegistration2() {
         final Class<TestConsumers> clazz = TestConsumers.class;
         final List<ConsumerHolder> consumerHolders = Arrays.stream(clazz.getMethods())
-            .map($ -> consumerCollector.getConsumer(clazz.getName() + $.getName()).orElse(null))
+            .map($ -> consumerCollector.getConsumer(consumerCollector.getConsumerName(clazz, $)))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
             .collect(Collectors.toList());
 
         Assertions.assertNotNull(consumerHolders);
         Assertions.assertTrue(consumerHolders.stream().anyMatch($ -> $.getAnnotation().topic().equals("topic-one")));
-        Assertions.assertTrue(consumerHolders.stream().anyMatch($ -> $.getAnnotation().topic().equals("topic-for-error")));
+        Assertions.assertTrue(consumerHolders.stream().anyMatch($ -> $.getAnnotation().topic().equals("topic-for" +
+            "-error")));
         Assertions.assertTrue(consumerHolders.stream().anyMatch($ -> $.getBean().getClass().equals(TestConsumers.class)));
-        Assertions.assertTrue(consumerHolders.stream().anyMatch($ -> $.getHandler().getName().equals("topicOneListener")));
+        Assertions.assertTrue(consumerHolders.stream().anyMatch($ -> $.getHandler().getName().equals(
+            "topicOneListener")));
     }
 
     @Test
@@ -138,7 +152,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         final Map<String, ImmutablePair<Class<?>, Serialization>> topics = producerFactory.getTopics();
 
-        Assertions.assertEquals(7, topics.size());
+        Assertions.assertEquals(10, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
@@ -175,8 +189,22 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
     @Test
     void protoSerializationTestOk() throws Exception {
-        final ProtoMsg msg = ProtoMsg.newBuilder().setData("data").build();
+        final ProtoMsg msg = ProtoMsg.newBuilder().setData(VALIDATION_STRING).build();
         producerForProtoTopic.send("topic-proto", msg);
         await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.protoTopicReceived.get());
+    }
+
+    @Test
+    void byteSerializationTestOk() throws Exception {
+        byte[] data = VALIDATION_STRING.getBytes(StandardCharsets.UTF_8);
+
+        producerForByteTopic.send("topic-byte", data);
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.byteTopicReceived.get());
+    }
+
+    @Test
+    void stringSerializationTestOk() throws Exception {
+        producerForStringTopic.send("topic-string", VALIDATION_STRING);
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.stringTopicReceived.get());
     }
 }

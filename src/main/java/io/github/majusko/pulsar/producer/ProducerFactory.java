@@ -13,7 +13,7 @@ public class ProducerFactory implements PulsarProducerFactory {
     private final Map<String, ImmutablePair<Class<?>, Serialization>> topics = new HashMap<>();
 
     public ProducerFactory addProducer(String topic) {
-        return addProducer(topic, Byte.class, Serialization.BYTE);
+        return addProducer(topic, byte[].class, Serialization.BYTE);
     }
 
     public ProducerFactory addProducer(String topic, Class<?> clazz) {

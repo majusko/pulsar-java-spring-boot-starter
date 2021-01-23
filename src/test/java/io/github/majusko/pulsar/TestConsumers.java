@@ -9,6 +9,7 @@ import org.apache.pulsar.client.api.SubscriptionType;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -20,6 +21,8 @@ public class TestConsumers {
     public AtomicBoolean mockTopicMessageListenerReceived = new AtomicBoolean(false);
     public AtomicBoolean avroTopicReceived = new AtomicBoolean(false);
     public AtomicBoolean protoTopicReceived = new AtomicBoolean(false);
+    public AtomicBoolean byteTopicReceived = new AtomicBoolean(false);
+    public AtomicBoolean stringTopicReceived = new AtomicBoolean(false);
     public AtomicBoolean mockRetryCountListenerReceived = new AtomicBoolean(false);
     public AtomicInteger retryCount = new AtomicInteger(0);
 
@@ -42,7 +45,25 @@ public class TestConsumers {
     @PulsarConsumer(topic = "topic-proto", clazz = ProtoMsg.class, serialization = Serialization.PROTOBUF)
     public void protoTopic(ProtoMsg protoMsg) {
         Assertions.assertNotNull(protoMsg);
+        Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, protoMsg.getData());
+
         protoTopicReceived.set(true);
+    }
+
+    @PulsarConsumer(topic = "topic-byte")
+    public void byteTopic(byte[] byteMsg) {
+        Assertions.assertNotNull(byteMsg);
+        Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, new String(byteMsg, StandardCharsets.UTF_8));
+
+        byteTopicReceived.set(true);
+    }
+
+    @PulsarConsumer(topic = "topic-string", clazz = String.class, serialization = Serialization.STRING)
+    public void byteTopic(String stringMsg) {
+        Assertions.assertNotNull(stringMsg);
+        Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, stringMsg);
+
+        stringTopicReceived.set(true);
     }
 
     @PulsarConsumer(topic = "topic-async", clazz = MyMsg.class, serialization = Serialization.JSON)
@@ -73,5 +94,11 @@ public class TestConsumers {
         }
         Assertions.assertNotNull(myMsg);
         mockRetryCountListenerReceived.set(true);
+
+
+    }
+
+    public static Serialization aa() {
+        return Serialization.BYTE;
     }
 }

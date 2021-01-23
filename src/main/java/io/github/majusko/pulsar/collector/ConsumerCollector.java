@@ -1,11 +1,12 @@
 package io.github.majusko.pulsar.collector;
 
-import io.github.majusko.pulsar.PulsarSpringStarterUtils;
 import io.github.majusko.pulsar.annotation.PulsarConsumer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Configuration;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
@@ -29,8 +30,9 @@ public class ConsumerCollector implements BeanPostProcessor {
         consumers.putAll(Arrays.stream(beanClass.getDeclaredMethods())
             .filter($ -> $.isAnnotationPresent(PulsarConsumer.class))
             .collect(Collectors.toMap(
-                method -> beanClass.getName() + consumerNameDelimiter + method.getName(),
-                method -> new ConsumerHolder(method.getAnnotation(PulsarConsumer.class), method, bean, getParameterType(method)))));
+                method -> getConsumerName(beanClass, method),
+                method -> new ConsumerHolder(method.getAnnotation(PulsarConsumer.class), method, bean,
+                    getParameterType(method)))));
 
         return bean;
     }
@@ -46,5 +48,12 @@ public class ConsumerCollector implements BeanPostProcessor {
 
     public Optional<ConsumerHolder> getConsumer(String methodDescriptor) {
         return Optional.ofNullable(consumers.get(methodDescriptor));
+    }
+
+    public String getConsumerName(Class<?> clazz, Method method) {
+        return clazz.getName() + consumerNameDelimiter + method.getName() + Arrays
+            .stream(method.getGenericParameterTypes())
+            .map(Type::getTypeName)
+            .collect(Collectors.joining(consumerNameDelimiter));
     }
 }

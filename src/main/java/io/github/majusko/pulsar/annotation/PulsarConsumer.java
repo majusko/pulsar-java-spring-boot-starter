@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 public @interface PulsarConsumer {
     String topic();
 
-    Class<?> clazz();
+    Class<?> clazz() default byte[].class;
 
     Serialization serialization() default Serialization.JSON;
 
