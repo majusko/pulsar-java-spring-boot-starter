@@ -1,6 +1,10 @@
 package io.github.majusko.pulsar;
 
 import io.github.majusko.pulsar.constant.Serialization;
+import io.github.majusko.pulsar.msg.AvroMsg;
+import io.github.majusko.pulsar.msg.MyMsg;
+import io.github.majusko.pulsar.msg.MyMsg2;
+import io.github.majusko.pulsar.msg.ProtoMsg;
 import io.github.majusko.pulsar.producer.ProducerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +21,10 @@ public class TestProducerConfiguration {
             .addProducer("topic-avro", AvroMsg.class, Serialization.AVRO)
             .addProducer("topic-async", MyMsg.class)
             .addProducer("topic-message", MyMsg.class)
-            .addProducer("topic-retry", MyMsg.class);
+            .addProducer("topic-retry", MyMsg.class)
+            .addProducer("topic-string", String.class, Serialization.STRING)
+            .addProducer("topic-byte")
+            .addProducer("topic-proto", ProtoMsg.class, Serialization.PROTOBUF)
+            .addProducer("topic-proto-native", ProtoMsg.class, Serialization.PROTOBUF_NATIVE);
     }
 }

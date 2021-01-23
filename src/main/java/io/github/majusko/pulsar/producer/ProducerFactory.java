@@ -12,6 +12,10 @@ public class ProducerFactory implements PulsarProducerFactory {
 
     private final Map<String, ImmutablePair<Class<?>, Serialization>> topics = new HashMap<>();
 
+    public ProducerFactory addProducer(String topic) {
+        return addProducer(topic, Byte.class, Serialization.BYTE);
+    }
+
     public ProducerFactory addProducer(String topic, Class<?> clazz) {
         topics.put(topic, new ImmutablePair<>(clazz, Serialization.JSON));
         return this;

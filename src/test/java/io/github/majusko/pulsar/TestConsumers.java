@@ -2,6 +2,9 @@ package io.github.majusko.pulsar;
 
 import io.github.majusko.pulsar.annotation.PulsarConsumer;
 import io.github.majusko.pulsar.constant.Serialization;
+import io.github.majusko.pulsar.msg.AvroMsg;
+import io.github.majusko.pulsar.msg.MyMsg;
+import io.github.majusko.pulsar.msg.ProtoMsg;
 import org.apache.pulsar.client.api.SubscriptionType;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,7 @@ public class TestConsumers {
     public AtomicBoolean mockTopicAsyncListenerReceived = new AtomicBoolean(false);
     public AtomicBoolean mockTopicMessageListenerReceived = new AtomicBoolean(false);
     public AtomicBoolean avroTopicReceived = new AtomicBoolean(false);
+    public AtomicBoolean protoTopicReceived = new AtomicBoolean(false);
     public AtomicBoolean mockRetryCountListenerReceived = new AtomicBoolean(false);
     public AtomicInteger retryCount = new AtomicInteger(0);
 
@@ -33,6 +37,12 @@ public class TestConsumers {
     public void avroTopic(AvroMsg avroMsg) {
         Assertions.assertNotNull(avroMsg);
         avroTopicReceived.set(true);
+    }
+
+    @PulsarConsumer(topic = "topic-proto", clazz = ProtoMsg.class, serialization = Serialization.PROTOBUF)
+    public void protoTopic(ProtoMsg protoMsg) {
+        Assertions.assertNotNull(protoMsg);
+        protoTopicReceived.set(true);
     }
 
     @PulsarConsumer(topic = "topic-async", clazz = MyMsg.class, serialization = Serialization.JSON)

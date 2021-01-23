@@ -4,6 +4,9 @@ import io.github.majusko.pulsar.collector.ConsumerCollector;
 import io.github.majusko.pulsar.collector.ConsumerHolder;
 import io.github.majusko.pulsar.constant.Serialization;
 import io.github.majusko.pulsar.consumer.ConsumerAggregator;
+import io.github.majusko.pulsar.msg.AvroMsg;
+import io.github.majusko.pulsar.msg.MyMsg;
+import io.github.majusko.pulsar.msg.ProtoMsg;
 import io.github.majusko.pulsar.producer.ProducerFactory;
 import io.github.majusko.pulsar.producer.PulsarTemplate;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -52,6 +55,9 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
     @Autowired
     private PulsarTemplate<AvroMsg> producerForAvroTopic;
+
+    @Autowired
+    private PulsarTemplate<ProtoMsg> producerForProtoTopic;
 
     @Container
     static PulsarContainer pulsarContainer = new PulsarContainer();
@@ -165,5 +171,12 @@ class PulsarJavaSpringBootStarterApplicationTests {
         testAvroMsg.setData("avro-test");
         producerForAvroTopic.send("topic-avro", testAvroMsg);
         await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.avroTopicReceived.get());
+    }
+
+    @Test
+    void protoSerializationTestOk() throws Exception {
+        final ProtoMsg msg = ProtoMsg.newBuilder().setData("data").build();
+        producerForProtoTopic.send("topic-proto", msg);
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.protoTopicReceived.get());
     }
 }
