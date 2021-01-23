@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static io.github.majusko.pulsar.PulsarSpringStarterUtils.getParameterType;
+import static io.github.majusko.pulsar.utils.SchemaUtils.getParameterType;
 
 @Configuration
 public class ConsumerCollector implements BeanPostProcessor {

@@ -90,6 +90,8 @@ pulsar.operation-timeout-sec=15
 pulsar.starting-backoff-interval-ms=100
 pulsar.max-backoff-interval-sec=10
 pulsar.consumer-name-delimiter=
+pulsar.namespace=default
+pulsar.tenant=public
 
 #Consumer
 pulsar.consumer.default.dead-letter-policy-max-redeliver-count=-1
@@ -97,8 +99,9 @@ pulsar.consumer.default.ack-timeout-ms=30
 
 ```
 
-Properties explained:
+###Properties explained:
 
+####PulsarClient
 - `pulsar.service-url` - URL used to connect to pulsar cluster.
 - `pulsar.io-threads` - Number of threads to be used for handling connections to brokers.
 - `pulsar.listener-threads` - Set the number of threads to be used for message listeners/subscribers.
@@ -109,6 +112,10 @@ Properties explained:
 - `pulsar.starting-backoff-interval-ms` - Duration of time for a backoff interval (Retry algorithm).
 - `pulsar.max-backoff-interval-sec` - The maximum duration of time for a backoff interval (Retry algorithm).
 - `pulsar.consumer-name-delimiter` - Consumer names are connection of bean name and method with a delimiter. By default, there is no delimiter and words are connected together.
+- `pulsar.namespace` - Namespace separation. For example: app1/app2 OR dev/staging/prod. More in [Namespaces docs](https://pulsar.apache.org/docs/en/concepts-messaging/#namespaces).
+- `pulsar.tenant` - Pulsar multi-tenancy support. More in [Multi Tenancy docs](https://pulsar.apache.org/docs/en/concepts-multi-tenancy/).
+
+####Consumer
 - `pulsar.consumer.default.dead-letter-policy-max-redeliver-count` - How many times should pulsar try to retry sending the message to consumer.
 - `pulsar.consumer.default.ack-timeout-ms` - How soon should be the message acked and how soon will dead letter mechanism try to retry to send the message.
 

@@ -1,9 +1,10 @@
 package io.github.majusko.pulsar.producer;
 
-import io.github.majusko.pulsar.PulsarSpringStarterUtils;
+import io.github.majusko.pulsar.utils.SchemaUtils;
 import io.github.majusko.pulsar.annotation.PulsarProducer;
 import io.github.majusko.pulsar.collector.ProducerHolder;
 import io.github.majusko.pulsar.error.exception.ProducerInitException;
+import io.github.majusko.pulsar.utils.TopicUrlService;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
@@ -19,11 +20,13 @@ import java.util.stream.Collectors;
 public class ProducerCollector implements BeanPostProcessor {
 
     private final PulsarClient pulsarClient;
+    private final TopicUrlService topicUrlService;
 
     private final Map<String, Producer> producers = new ConcurrentHashMap<>();
 
-    public ProducerCollector(PulsarClient pulsarClient) {
+    public ProducerCollector(PulsarClient pulsarClient, TopicUrlService topicUrlService) {
         this.pulsarClient = pulsarClient;
+        this.topicUrlService = topicUrlService;
     }
 
     @Override
@@ -47,7 +50,7 @@ public class ProducerCollector implements BeanPostProcessor {
     private Producer<?> buildProducer(ProducerHolder holder) {
         try {
             return pulsarClient.newProducer(getSchema(holder))
-                .topic(holder.getTopic())
+                .topic(topicUrlService.buildTopicUrl(holder.getTopic()))
                 .create();
         } catch (PulsarClientException e) {
             throw new ProducerInitException("Failed to init producer.", e);
@@ -55,7 +58,7 @@ public class ProducerCollector implements BeanPostProcessor {
     }
 
     private <T> Schema<?> getSchema(ProducerHolder holder) throws RuntimeException {
-        return PulsarSpringStarterUtils.getSchema(holder.getSerialization(), holder.getClazz());
+        return SchemaUtils.getSchema(holder.getSerialization(), holder.getClazz());
     }
 
     Map<String, Producer> getProducers() {

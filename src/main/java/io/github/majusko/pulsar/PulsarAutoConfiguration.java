@@ -1,5 +1,7 @@
 package io.github.majusko.pulsar;
 
+import io.github.majusko.pulsar.properties.ConsumerProperties;
+import io.github.majusko.pulsar.properties.PulsarProperties;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

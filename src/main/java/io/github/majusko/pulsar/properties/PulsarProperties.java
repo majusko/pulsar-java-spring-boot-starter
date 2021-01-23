@@ -1,4 +1,4 @@
-package io.github.majusko.pulsar;
+package io.github.majusko.pulsar.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -14,6 +14,8 @@ public class PulsarProperties {
     private Integer startingBackoffIntervalMs = 100;
     private Integer maxBackoffIntervalSec = 10;
     private String consumerNameDelimiter = "";
+    private String namespace = "default";
+    private String tenant = "public";
 
     public String getServiceUrl() {
         return serviceUrl;
@@ -93,5 +95,21 @@ public class PulsarProperties {
 
     public void setConsumerNameDelimiter(String consumerNameDelimiter) {
         this.consumerNameDelimiter = consumerNameDelimiter;
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
+
+    public String getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(String tenant) {
+        this.tenant = tenant;
     }
 }

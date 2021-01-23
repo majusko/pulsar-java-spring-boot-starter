@@ -1,14 +1,13 @@
 package io.github.majusko.pulsar.consumer;
 
-import com.google.protobuf.GeneratedMessageV3;
-import io.github.majusko.pulsar.ConsumerProperties;
 import io.github.majusko.pulsar.PulsarMessage;
-import io.github.majusko.pulsar.PulsarSpringStarterUtils;
 import io.github.majusko.pulsar.collector.ConsumerCollector;
 import io.github.majusko.pulsar.collector.ConsumerHolder;
-import io.github.majusko.pulsar.constant.Serialization;
 import io.github.majusko.pulsar.error.FailedMessage;
 import io.github.majusko.pulsar.error.exception.ConsumerInitException;
+import io.github.majusko.pulsar.properties.ConsumerProperties;
+import io.github.majusko.pulsar.utils.SchemaUtils;
+import io.github.majusko.pulsar.utils.TopicUrlService;
 import org.apache.pulsar.client.api.*;
 import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.context.annotation.DependsOn;
@@ -31,15 +30,17 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
     private final ConsumerCollector consumerCollector;
     private final PulsarClient pulsarClient;
     private final ConsumerProperties consumerProperties;
+    private final TopicUrlService topicUrlService;
 
     private StringValueResolver stringValueResolver;
     private List<Consumer> consumers;
 
     public ConsumerAggregator(ConsumerCollector consumerCollector, PulsarClient pulsarClient,
-                              ConsumerProperties consumerProperties) {
+                              ConsumerProperties consumerProperties, TopicUrlService topicUrlService) {
         this.consumerCollector = consumerCollector;
         this.pulsarClient = pulsarClient;
         this.consumerProperties = consumerProperties;
+        this.topicUrlService = topicUrlService;
     }
 
     @PostConstruct
@@ -52,11 +53,13 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
     private Consumer<?> subscribe(String name, ConsumerHolder holder) {
         try {
             final ConsumerBuilder<?> clientBuilder = pulsarClient
-                .newConsumer(PulsarSpringStarterUtils.getSchema(holder.getAnnotation().serialization(),
+                .newConsumer(SchemaUtils.getSchema(holder.getAnnotation().serialization(),
                     holder.getAnnotation().clazz()))
                 .consumerName("consumer-" + name)
                 .subscriptionName("subscription-" + name)
-                .topic(stringValueResolver.resolveStringValue(holder.getAnnotation().topic()))
+                .topic(topicUrlService
+                    .buildTopicUrl(stringValueResolver
+                        .resolveStringValue(holder.getAnnotation().topic())))
                 .subscriptionType(holder.getAnnotation().subscriptionType())
                 .messageListener((consumer, msg) -> {
                     try {
