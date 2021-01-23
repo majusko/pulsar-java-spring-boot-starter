@@ -9,7 +9,7 @@ import java.lang.reflect.Method;
 
 public class PulsarSpringStarterUtils {
 
-    public static <T> Schema<?> getGenericSchema(Serialization serialization, Class<T> clazz) throws RuntimeException {
+    private static <T> Schema<?> getGenericSchema(Serialization serialization, Class<T> clazz) throws RuntimeException {
         switch (serialization) {
             case JSON: {
                 return Schema.JSON(clazz);
@@ -29,7 +29,7 @@ public class PulsarSpringStarterUtils {
         }
     }
 
-    public static <T extends com.google.protobuf.GeneratedMessageV3> Schema<?> getProtoSchema(Serialization serialization, Class<T> clazz) throws RuntimeException {
+    private static <T extends com.google.protobuf.GeneratedMessageV3> Schema<?> getProtoSchema(Serialization serialization, Class<T> clazz) throws RuntimeException {
         switch (serialization) {
             case PROTOBUF: {
                 return Schema.PROTOBUF(clazz);
@@ -44,11 +44,11 @@ public class PulsarSpringStarterUtils {
     }
 
     public static Schema<?> getSchema(Serialization serialisation, Class<?> clazz) {
-        if(PulsarSpringStarterUtils.isProto(serialisation)) {
-            return PulsarSpringStarterUtils.getProtoSchema(serialisation, (Class<? extends GeneratedMessageV3>) clazz);
+        if(isProto(serialisation)) {
+            return getProtoSchema(serialisation, (Class<? extends GeneratedMessageV3>) clazz);
         }
 
-        return PulsarSpringStarterUtils.getGenericSchema(serialisation, clazz);
+        return getGenericSchema(serialisation, clazz);
     }
 
     public static boolean isProto(Serialization serialization) {
