@@ -9,6 +9,7 @@ import io.github.majusko.pulsar.msg.MyMsg;
 import io.github.majusko.pulsar.msg.ProtoMsg;
 import io.github.majusko.pulsar.producer.ProducerFactory;
 import io.github.majusko.pulsar.producer.PulsarTemplate;
+import io.github.majusko.pulsar.utils.TopicUrlService;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.PulsarClientException;
@@ -66,11 +67,14 @@ class PulsarJavaSpringBootStarterApplicationTests {
     @Autowired
     private PulsarTemplate<String> producerForStringTopic;
 
-    @Container
-    static PulsarContainer pulsarContainer = new PulsarContainer();
-
     @Autowired
     private TestConsumers testConsumers;
+
+    @Autowired
+    private TopicUrlService topicUrlService;
+
+    @Container
+    static PulsarContainer pulsarContainer = new PulsarContainer();
 
     public static final String VALIDATION_STRING = "validation-string";
 
@@ -124,7 +128,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
         Assertions.assertEquals(9, consumers.size());
 
         final Consumer<?> consumer =
-            consumers.stream().filter($ -> $.getTopic().equals("topic-one")).findFirst().orElseThrow(Exception::new);
+            consumers.stream().filter($ -> $.getTopic().equals(topicUrlService.buildTopicUrl("topic-one"))).findFirst().orElseThrow(Exception::new);
 
         Assertions.assertNotNull(consumer);
     }
@@ -165,7 +169,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
         final AtomicBoolean receivedError = new AtomicBoolean(false);
         final String messageToSend = "This message will never arrive.";
         final Disposable disposable = consumerAggregator.onError(($) -> {
-            Assertions.assertEquals($.getConsumer().getTopic(), "topic-for-error");
+            Assertions.assertEquals($.getConsumer().getTopic(), topicUrlService.buildTopicUrl("topic-for-error"));
             Assertions.assertEquals($.getMessage().getValue(), messageToSend);
             Assertions.assertNotNull($.getException());
 

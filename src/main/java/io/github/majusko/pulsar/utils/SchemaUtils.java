@@ -1,4 +1,4 @@
-package io.github.majusko.pulsar;
+package io.github.majusko.pulsar.utils;
 
 import com.google.protobuf.GeneratedMessageV3;
 import io.github.majusko.pulsar.constant.Serialization;
@@ -7,9 +7,9 @@ import org.apache.pulsar.client.api.Schema;
 
 import java.lang.reflect.Method;
 
-public class PulsarSpringStarterUtils {
+public class SchemaUtils {
 
-    private PulsarSpringStarterUtils() {
+    private SchemaUtils() {
     }
 
     private static <T> Schema<?> getGenericSchema(Serialization serialization, Class<T> clazz) throws RuntimeException {
