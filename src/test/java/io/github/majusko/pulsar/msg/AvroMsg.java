@@ -1,4 +1,4 @@
-package io.github.majusko.pulsar;
+package io.github.majusko.pulsar.msg;
 
 public class AvroMsg {
 
