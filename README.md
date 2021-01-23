@@ -70,7 +70,6 @@ class MyConsumer {
 
 #### 4. Minimal Configuration
 
-Default configuration:
 ```properties
 
 pulsar.service-url=pulsar://localhost:6650
