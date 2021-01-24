@@ -24,6 +24,7 @@ public class TestProducerConfiguration {
             .addProducer("topic-retry", MyMsg.class)
             .addProducer("topic-string", String.class, Serialization.STRING)
             .addProducer("topic-byte")
-            .addProducer("topic-proto", ProtoMsg.class, Serialization.PROTOBUF);
+            .addProducer("topic-proto", ProtoMsg.class, Serialization.PROTOBUF)
+            .addProducer("topic-deliver-to-dead-letter", MyMsg.class);
     }
 }

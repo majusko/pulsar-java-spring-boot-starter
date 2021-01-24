@@ -97,7 +97,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         await().untilTrue(testConsumers.mockRetryCountListenerReceived);
 
-        Assertions.assertEquals(3, testConsumers.retryCount.get());
+        Assertions.assertEquals(3, testConsumers.failTwiceRetryCount.get());
     }
 
     @Test
@@ -125,7 +125,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void testConsumerRegistration1() throws Exception {
         final List<Consumer> consumers = consumerAggregator.getConsumers();
 
-        Assertions.assertEquals(9, consumers.size());
+        Assertions.assertEquals(11, consumers.size());
 
         final Consumer<?> consumer =
             consumers.stream().filter($ -> $.getTopic().equals(topicUrlService.buildTopicUrl("topic-one"))).findFirst().orElseThrow(Exception::new);
@@ -156,7 +156,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         final Map<String, ImmutablePair<Class<?>, Serialization>> topics = producerFactory.getTopics();
 
-        Assertions.assertEquals(10, topics.size());
+        Assertions.assertEquals(11, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
@@ -210,5 +210,11 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void stringSerializationTestOk() throws Exception {
         producerForStringTopic.send("topic-string", VALIDATION_STRING);
         await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.stringTopicReceived.get());
+    }
+
+    @Test
+    void dealLetterTopicDelivery() throws Exception {
+        producer.send("topic-deliver-to-dead-letter", new MyMsg(VALIDATION_STRING));
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.subscribeToDeadLetterTopicReceived.get());
     }
 }
