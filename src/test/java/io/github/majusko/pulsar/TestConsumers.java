@@ -24,7 +24,9 @@ public class TestConsumers {
     public AtomicBoolean byteTopicReceived = new AtomicBoolean(false);
     public AtomicBoolean stringTopicReceived = new AtomicBoolean(false);
     public AtomicBoolean mockRetryCountListenerReceived = new AtomicBoolean(false);
-    public AtomicInteger retryCount = new AtomicInteger(0);
+    public AtomicBoolean subscribeToDeadLetterTopicReceived = new AtomicBoolean(false);
+    public AtomicInteger failTwiceRetryCount = new AtomicInteger(0);
+    public AtomicInteger topicOverflowDueToExceptionRetryCount = new AtomicInteger(0);
 
     @PulsarConsumer(topic = "topic-one", clazz = MyMsg.class, serialization = Serialization.JSON)
     public void topicOneListener(MyMsg myMsg) {
@@ -85,20 +87,35 @@ public class TestConsumers {
         mockTopicMessageListenerReceived.set(true);
     }
 
-    @PulsarConsumer(topic = "topic-retry", clazz = MyMsg.class, maxRedeliverCount = 3, subscriptionType = SubscriptionType.Shared, deadLetterTopic = "dead-letter-topic")
+    @PulsarConsumer(topic = "topic-retry", clazz = MyMsg.class, maxRedeliverCount = 3, subscriptionType = SubscriptionType.Shared)
     public void failTwice(MyMsg myMsg) throws Exception {
-        int retryAttempt = retryCount.getAndIncrement();
+        int retryAttempt = failTwiceRetryCount.getAndIncrement();
 
         if(retryAttempt < 2) {
             throw new Exception("Expected msg fail.");
         }
         Assertions.assertNotNull(myMsg);
         mockRetryCountListenerReceived.set(true);
-
-
     }
 
-    public static Serialization aa() {
-        return Serialization.BYTE;
+
+    @PulsarConsumer(topic = "topic-deliver-to-dead-letter", clazz = MyMsg.class, subscriptionType = SubscriptionType.Shared, deadLetterTopic = "custom-dead-letter-topic")
+    public void topicOverflowDueToException(MyMsg myMsg) throws Exception {
+        int retryAttempt = topicOverflowDueToExceptionRetryCount.getAndIncrement();
+
+        Assertions.assertNotNull(myMsg);
+        Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, myMsg.getData());
+
+        if(retryAttempt < 2) {
+            throw new Exception("Expected msg fail.");
+        }
+        Assertions.fail();
+    }
+
+    @PulsarConsumer(topic = "custom-dead-letter-topic", clazz = MyMsg.class)
+    public void subscribeToDeadLetterTopic(MyMsg myMsg) {
+        Assertions.assertNotNull(myMsg);
+        Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, myMsg.getData());
+        subscribeToDeadLetterTopicReceived.set(true);
     }
 }

@@ -52,7 +52,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
 
     private Consumer<?> subscribe(String name, ConsumerHolder holder) {
         try {
-            final ConsumerBuilder<?> clientBuilder = pulsarClient
+            final ConsumerBuilder<?> consumerBuilder = pulsarClient
                 .newConsumer(SchemaUtils.getSchema(holder.getAnnotation().serialization(),
                     holder.getAnnotation().clazz()))
                 .consumerName("consumer-" + name)
@@ -67,18 +67,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                         method.setAccessible(true);
 
                         if (holder.isWrapped()) {
-                            PulsarMessage pulsarMessage = new PulsarMessage();
-                            pulsarMessage.setValue(msg.getValue());
-                            pulsarMessage.setMessageId(msg.getMessageId());
-                            pulsarMessage.setSequenceId(msg.getSequenceId());
-                            pulsarMessage.setProperties(msg.getProperties());
-                            pulsarMessage.setTopicName(msg.getTopicName());
-                            pulsarMessage.setKey(msg.getKey());
-                            pulsarMessage.setEventTime(msg.getEventTime());
-                            pulsarMessage.setPublishTime(msg.getPublishTime());
-                            pulsarMessage.setProducerName(msg.getProducerName());
-
-                            method.invoke(holder.getBean(), pulsarMessage);
+                            method.invoke(holder.getBean(), wrapMessage(msg));
                         } else {
                             method.invoke(holder.getBean(), msg.getValue());
                         }
@@ -90,30 +79,54 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                     }
                 });
 
-            if (consumerProperties.getDeadLetterPolicyMaxRedeliverCount() >= 0) {
-                clientBuilder.deadLetterPolicy(DeadLetterPolicy.builder().maxRedeliverCount(consumerProperties.getDeadLetterPolicyMaxRedeliverCount()).build());
-            }
-
             if (consumerProperties.getAckTimeoutMs() > 0) {
-                clientBuilder.ackTimeout(consumerProperties.getAckTimeoutMs(), TimeUnit.MILLISECONDS);
+                consumerBuilder.ackTimeout(consumerProperties.getAckTimeoutMs(), TimeUnit.MILLISECONDS);
             }
 
-            if (holder.getAnnotation().maxRedeliverCount() >= 0) {
-                final DeadLetterPolicy.DeadLetterPolicyBuilder deadLetterBuilder = DeadLetterPolicy.builder();
+            buildDeadLetterPolicy(holder, consumerBuilder);
 
-                deadLetterBuilder.maxRedeliverCount(holder.getAnnotation().maxRedeliverCount());
-
-                if (!holder.getAnnotation().deadLetterTopic().isEmpty()) {
-                    deadLetterBuilder.deadLetterTopic(holder.getAnnotation().deadLetterTopic());
-                }
-
-                clientBuilder.deadLetterPolicy(deadLetterBuilder.build());
-            }
-
-            return clientBuilder.subscribe();
+            return consumerBuilder.subscribe();
         } catch (PulsarClientException e) {
             throw new ConsumerInitException("Failed to init consumer.", e);
         }
+    }
+
+    public void buildDeadLetterPolicy(ConsumerHolder holder, ConsumerBuilder<?> consumerBuilder) {
+        DeadLetterPolicy.DeadLetterPolicyBuilder deadLetterBuilder = null;
+
+        if (consumerProperties.getDeadLetterPolicyMaxRedeliverCount() >= 0) {
+            deadLetterBuilder =
+                DeadLetterPolicy.builder().maxRedeliverCount(consumerProperties.getDeadLetterPolicyMaxRedeliverCount());
+        }
+
+        if (holder.getAnnotation().maxRedeliverCount() >= 0) {
+            deadLetterBuilder =
+                DeadLetterPolicy.builder().maxRedeliverCount(holder.getAnnotation().maxRedeliverCount());
+        }
+
+        if (deadLetterBuilder != null && !holder.getAnnotation().deadLetterTopic().isEmpty()) {
+            deadLetterBuilder.deadLetterTopic(topicUrlService.buildTopicUrl(holder.getAnnotation().deadLetterTopic()));
+        }
+
+        if (deadLetterBuilder != null) {
+            consumerBuilder.deadLetterPolicy(deadLetterBuilder.build());
+        }
+    }
+
+    public <T> PulsarMessage<T> wrapMessage(Message<T> message) {
+        final PulsarMessage<T> pulsarMessage = new PulsarMessage<T>();
+
+        pulsarMessage.setValue(message.getValue());
+        pulsarMessage.setMessageId(message.getMessageId());
+        pulsarMessage.setSequenceId(message.getSequenceId());
+        pulsarMessage.setProperties(message.getProperties());
+        pulsarMessage.setTopicName(message.getTopicName());
+        pulsarMessage.setKey(message.getKey());
+        pulsarMessage.setEventTime(message.getEventTime());
+        pulsarMessage.setPublishTime(message.getPublishTime());
+        pulsarMessage.setProducerName(message.getProducerName());
+
+        return pulsarMessage;
     }
 
     public List<Consumer> getConsumers() {
