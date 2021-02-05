@@ -129,6 +129,8 @@ pulsar.consumer.default.ack-timeout-ms=30
 
 ### Additional usages
 
+#### 1. PulsarMessage Wrapper
+
 In case you need to access pulsar metadata you simply use `PulsarMessage` as a wrapper and data will be injected for you.
 
 ```java
@@ -139,6 +141,20 @@ class MyConsumer {
     void consume(PulsarMessage<MyMsg> myMsg) { 
         producer.send(TOPIC, msg.getValue()); 
     }
+}
+```
+
+#### 1. SpeL support
+
+You can configure topic names in `application.properties`
+
+```properties
+my.custom.topic.name=foo
+```
+
+```java
+@PulsarConsumer(topic = "${my.custom.topic.name}", clazz = MyMsg.class)
+public void consume(MyMsg myMsg) {
 }
 ```
 

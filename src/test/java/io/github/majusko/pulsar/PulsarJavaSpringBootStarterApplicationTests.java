@@ -125,7 +125,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void testConsumerRegistration1() throws Exception {
         final List<Consumer> consumers = consumerAggregator.getConsumers();
 
-        Assertions.assertEquals(11, consumers.size());
+        Assertions.assertEquals(12, consumers.size());
 
         final Consumer<?> consumer =
             consumers.stream().filter($ -> $.getTopic().equals(topicUrlService.buildTopicUrl("topic-one"))).findFirst().orElseThrow(Exception::new);
@@ -156,7 +156,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         final Map<String, ImmutablePair<Class<?>, Serialization>> topics = producerFactory.getTopics();
 
-        Assertions.assertEquals(11, topics.size());
+        Assertions.assertEquals(12, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
@@ -210,6 +210,12 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void stringSerializationTestOk() throws Exception {
         producerForStringTopic.send("topic-string", VALIDATION_STRING);
         await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.stringTopicReceived.get());
+    }
+
+    @Test
+    void testSpelSupportConsumerAndProducer() throws Exception {
+        producerForStringTopic.send("${my.custom.topic.name}", VALIDATION_STRING);
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.subscribeToCustomSpelTopicConfig.get());
     }
 
     @Test
