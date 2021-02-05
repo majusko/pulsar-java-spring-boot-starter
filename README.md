@@ -148,7 +148,7 @@ class MyConsumer {
 
 You can configure topic names in `application.properties`
 
-```java
+```properties
 my.custom.topic.name=foo
 ```
 
