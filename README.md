@@ -103,7 +103,7 @@ pulsar.tenant=public
 
 #Consumer
 pulsar.consumer.default.dead-letter-policy-max-redeliver-count=-1
-pulsar.consumer.default.ack-timeout-ms=30
+pulsar.consumer.default.ack-timeout-ms=3000
 
 ```
 
