@@ -16,6 +16,7 @@ public class PulsarProperties {
     private String consumerNameDelimiter = "";
     private String namespace = "default";
     private String tenant = "public";
+    private Boolean transactionCoordinatorEnabled = false;
 
     public String getServiceUrl() {
         return serviceUrl;
@@ -111,5 +112,13 @@ public class PulsarProperties {
 
     public void setTenant(String tenant) {
         this.tenant = tenant;
+    }
+
+    public Boolean getTransactionCoordinatorEnabled() {
+        return transactionCoordinatorEnabled;
+    }
+
+    public void setTransactionCoordinatorEnabled(Boolean transactionCoordinatorEnabled) {
+        this.transactionCoordinatorEnabled = transactionCoordinatorEnabled;
     }
 }
