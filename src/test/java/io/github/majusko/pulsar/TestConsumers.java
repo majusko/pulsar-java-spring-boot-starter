@@ -29,7 +29,7 @@ public class TestConsumers {
     public AtomicInteger failTwiceRetryCount = new AtomicInteger(0);
     public AtomicInteger topicOverflowDueToExceptionRetryCount = new AtomicInteger(0);
 
-    @PulsarConsumer(topic = "topic-one", clazz = MyMsg.class, serialization = Serialization.JSON)
+    @PulsarConsumer(topic = "topic-one", clazz = MyMsg.class, subscriptionType = SubscriptionType.Shared)
     public void topicOneListener(MyMsg myMsg) {
         Assertions.assertNotNull(myMsg);
         mockTopicListenerReceived.set(true);

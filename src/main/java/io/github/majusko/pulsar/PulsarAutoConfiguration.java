@@ -36,6 +36,7 @@ public class PulsarAutoConfiguration {
             .operationTimeout(pulsarProperties.getOperationTimeoutSec(), TimeUnit.SECONDS)
             .startingBackoffInterval(pulsarProperties.getStartingBackoffIntervalMs(), TimeUnit.MILLISECONDS)
             .maxBackoffInterval(pulsarProperties.getMaxBackoffIntervalSec(), TimeUnit.SECONDS)
+            .enableTransaction(pulsarProperties.getTransactionCoordinatorEnabled())
             .build();
     }
 }
