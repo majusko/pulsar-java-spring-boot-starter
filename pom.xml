@@ -20,7 +20,7 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<apache.pulsar.client.version>2.8.0</apache.pulsar.client.version>
-		<testcontainers.version>1.15.3</testcontainers.version>
+		<testcontainers.version>1.16.0</testcontainers.version>
 		<junit-jupiter.version>5.7.2</junit-jupiter.version>
 		<awaitility.version>4.1.0</awaitility.version>
 		<reactor.core.version>3.4.6</reactor.core.version>
