@@ -100,6 +100,7 @@ pulsar.max-backoff-interval-sec=10
 pulsar.consumer-name-delimiter=
 pulsar.namespace=default
 pulsar.tenant=public
+pulsar.transactionCoordinatorEnabled=false
 
 #Consumer
 pulsar.consumer.default.dead-letter-policy-max-redeliver-count=-1
