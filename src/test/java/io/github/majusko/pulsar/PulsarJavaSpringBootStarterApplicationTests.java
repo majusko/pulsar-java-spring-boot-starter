@@ -24,6 +24,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PulsarContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 import reactor.core.Disposable;
 
 import java.nio.charset.StandardCharsets;
@@ -74,7 +75,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
     private TopicUrlService topicUrlService;
 
     @Container
-    static PulsarContainer pulsarContainer = new PulsarContainer();
+    static PulsarContainer pulsarContainer = new PulsarContainer(DockerImageName.parse("apachepulsar/pulsar:latest"));
 
     public static final String VALIDATION_STRING = "validation-string";
 
