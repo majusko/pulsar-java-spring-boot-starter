@@ -36,6 +36,15 @@ public class PulsarAutoConfiguration {
             .operationTimeout(pulsarProperties.getOperationTimeoutSec(), TimeUnit.SECONDS)
             .startingBackoffInterval(pulsarProperties.getStartingBackoffIntervalMs(), TimeUnit.MILLISECONDS)
             .maxBackoffInterval(pulsarProperties.getMaxBackoffIntervalSec(), TimeUnit.SECONDS)
+            .useKeyStoreTls(pulsarProperties.isUseKeyStoreTls())
+            .tlsTrustCertsFilePath(pulsarProperties.getTlsTrustCertsFilePath())
+            .tlsCiphers(pulsarProperties.getTlsCiphers())
+            .tlsProtocols(pulsarProperties.getTlsProtocols())
+            .tlsTrustStorePassword(pulsarProperties.getTlsTrustStorePassword())
+            .tlsTrustStorePath(pulsarProperties.getTlsTrustStorePath())
+            .tlsTrustStoreType(pulsarProperties.getTlsTrustStoreType())
+            .allowTlsInsecureConnection(pulsarProperties.isAllowTlsInsecureConnection())
+            .enableTlsHostnameVerification(pulsarProperties.isEnableTlsHostnameVerification())
             .build();
     }
 }

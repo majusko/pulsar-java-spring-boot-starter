@@ -107,10 +107,26 @@ pulsar.consumer.default.ack-timeout-ms=3000
 
 ```
 
+TLS connection configuration:
+```properties
+pulsar.service-url=pulsar+ssl://localhost:6651
+pulsar.tlsTrustCertsFilePath=/etc/pulsar/tls/ca.crt
+pulsar.tlsCiphers=TLS_DH_RSA_WITH_AES_256_GCM_SHA384,TLS_DH_RSA_WITH_AES_256_CBC_SHA
+pulsar.tlsProtocols=TLSv1.3,TLSv1.2
+pulsar.allowTlsInsecureConnection=false
+pulsar.enableTlsHostnameVerification=false
+
+pulsar.tlsTrustStorePassword=brokerpw
+pulsar.tlsTrustStorePath=/var/private/tls/broker.truststore.jks
+pulsar.tlsTrustStoreType=JKS
+
+pulsar.useKeyStoreTls=false
+```
+
 ### Properties explained:
 
 #### PulsarClient
-- `pulsar.service-url` - URL used to connect to pulsar cluster.
+- `pulsar.service-url` - URL used to connect to pulsar cluster. Use `pulsar+ssl://` URL to enable TLS configuration. Examples: `pulsar://my-broker:6650` for regular endpoint `pulsar+ssl://my-broker:6651` for TLS encrypted endpoint
 - `pulsar.io-threads` - Number of threads to be used for handling connections to brokers.
 - `pulsar.listener-threads` - Set the number of threads to be used for message listeners/subscribers.
 - `pulsar.enable-tcp-no-delay` -  Whether to use TCP no-delay flag on the connection, to disable Nagle algorithm.
@@ -122,6 +138,17 @@ pulsar.consumer.default.ack-timeout-ms=3000
 - `pulsar.consumer-name-delimiter` - Consumer names are connection of bean name and method with a delimiter. By default, there is no delimiter and words are connected together.
 - `pulsar.namespace` - Namespace separation. For example: app1/app2 OR dev/staging/prod. More in [Namespaces docs](https://pulsar.apache.org/docs/en/concepts-messaging/#namespaces).
 - `pulsar.tenant` - Pulsar multi-tenancy support. More in [Multi Tenancy docs](https://pulsar.apache.org/docs/en/concepts-multi-tenancy/).
+
+Change only in case TLS is enabled (By using `pulsar+ssl://` as `pulsar.service-url` value prefix.)
+- `pulsar.tlsTrustCertsFilePath` -  Path to the trusted TLS certificate file
+- `pulsar.tlsCiphers` - A list of cipher suites. This is a named combination of authentication, encryption, MAC and key exchange algorithm used to negotiate the security settings for a network connection using TLS or SSL network protocol. By default, all the available cipher suites are supported.
+- `pulsar.tlsProtocols` - The SSL protocol used to generate the SSLContext.
+- `pulsar.tlsTrustStorePassword` - The store password for the key store file.
+- `pulsar.tlsTrustStorePath` - The location of the trust store file.
+- `pulsar.tlsTrustStoreType` - The file format of the trust store file.
+- `pulsar.useKeyStoreTls` - Whether use KeyStore type as tls configuration parameter. False means use default pem type configuration.
+- `pulsar.allowTlsInsecureConnection` - Whether the Pulsar client accepts untrusted TLS certificate from broker
+- `pulsar.enableTlsHostnameVerification` - Whether to enable TLS hostname verification
 
 #### Consumer
 - `pulsar.consumer.default.dead-letter-policy-max-redeliver-count` - How many times should pulsar try to retry sending the message to consumer.
