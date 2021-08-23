@@ -1,6 +1,6 @@
 # Spring boot starter for [Apache Pulsar](https://pulsar.apache.org/)
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.majusko/pulsar-java-spring-boot-starter/badge.svg)](https://search.maven.org/search?q=g:io.github.majusko)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.majusko/pulsar-java-spring-boot-starter/badge.svg)](https://search.maven.org/artifact/io.github.majusko/pulsar-java-spring-boot-starter)
 [![Release](https://jitpack.io/v/majusko/pulsar-java-spring-boot-starter.svg)](https://jitpack.io/#majusko/pulsar-java-spring-boot-starter)
 [![Build Status](https://github.com/majusko/pulsar-java-spring-boot-starter/actions/workflows/test.yml/badge.svg)](https://github.com/majusko/pulsar-java-spring-boot-starter/actions/workflows/test.yml)
 [![Test Coverage](https://codecov.io/gh/majusko/pulsar-java-spring-boot-starter/branch/master/graph/badge.svg)](https://codecov.io/gh/majusko/pulsar-java-spring-boot-starter/branch/master)
@@ -16,7 +16,7 @@ Simple start consist only from 3 simple steps.
 <dependency>
   <groupId>io.github.majusko</groupId>
   <artifactId>pulsar-java-spring-boot-starter</artifactId>
-  <version>${version}</version>
+  <version>1.0.5</version>
 </dependency>
 ```
 
