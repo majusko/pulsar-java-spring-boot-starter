@@ -1,16 +1,12 @@
 # This workflow will build a Java project with Maven
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
 
-name: Java CI with Maven
+name: Build & Release
 
 on:
-  workflow_dispatch:
-  pull_request:
-    branches:
-      - master
   push:
-    branches:
-      - master
+    tags:
+      - "*"
 
 jobs:
   build:
@@ -29,4 +25,9 @@ jobs:
         uses: codecov/codecov-action@v2
         with:
           verbose: true
-
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          prerelease: false
+          files: |
+            LICENSE.md
+            *.jar
