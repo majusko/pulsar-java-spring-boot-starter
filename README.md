@@ -2,7 +2,7 @@
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.majusko/pulsar-java-spring-boot-starter/badge.svg)](https://search.maven.org/search?q=g:io.github.majusko)
 [![Release](https://jitpack.io/v/majusko/pulsar-java-spring-boot-starter.svg)](https://jitpack.io/#majusko/pulsar-java-spring-boot-starter)
-[![Build Status](https://travis-ci.com/majusko/pulsar-java-spring-boot-starter.svg?branch=master)](https://travis-ci.com/majusko/pulsar-java-spring-boot-starter)
+[![Build Status](https://github.com/majusko/pulsar-java-spring-boot-starter/actions/workflows/test.yml/badge.svg)](https://github.com/majusko/pulsar-java-spring-boot-starter/actions/workflows/test.yml)
 [![Test Coverage](https://codecov.io/gh/majusko/pulsar-java-spring-boot-starter/branch/master/graph/badge.svg)](https://codecov.io/gh/majusko/pulsar-java-spring-boot-starter/branch/master)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Join the chat at https://gitter.im/pulsar-java-spring-boot-starter/community](https://badges.gitter.im/pulsar-java-spring-boot-starter/community.svg)](https://gitter.im/pulsar-java-spring-boot-starter/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
