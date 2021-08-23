@@ -26,7 +26,8 @@ jobs:
       - name: Build with Maven
         working-directory: ./back-end
         run: mvn -B install
-     - uses: actions/checkout@master
-     - uses: codecov/codecov-action@v2
-
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          verbose: true
 
