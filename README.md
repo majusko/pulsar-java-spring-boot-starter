@@ -123,6 +123,16 @@ pulsar.tlsTrustStoreType=JKS
 pulsar.useKeyStoreTls=false
 ```
 
+Pulsar client authentication
+```properties
+# TLS
+pulsar.tls-auth-cert-file-path=/etc/pulsar/tls/cert.cert.pem
+pulsar.tls-auth-key-file-path=/etc/pulsar/tls/key.key-pk8.pem
+
+#Token based
+pulsar.token-auth-value=43th4398gh340gf34gj349gh304ghryj34fh
+```
+
 ### Properties explained:
 
 #### PulsarClient

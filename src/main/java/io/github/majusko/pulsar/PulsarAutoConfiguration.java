@@ -1,7 +1,11 @@
 package io.github.majusko.pulsar;
 
+import com.google.common.base.Strings;
+import io.github.majusko.pulsar.error.exception.ClientInitException;
 import io.github.majusko.pulsar.properties.ConsumerProperties;
 import io.github.majusko.pulsar.properties.PulsarProperties;
+import org.apache.pulsar.client.api.AuthenticationFactory;
+import org.apache.pulsar.client.api.ClientBuilder;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -25,8 +29,13 @@ public class PulsarAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public PulsarClient pulsarClient() throws PulsarClientException {
-        return PulsarClient.builder()
+    public PulsarClient pulsarClient() throws PulsarClientException, ClientInitException {
+        if (!Strings.isNullOrEmpty(pulsarProperties.getTlsAuthCertFilePath()) &&
+            !Strings.isNullOrEmpty(pulsarProperties.getTlsAuthKeyFilePath()) &&
+            !Strings.isNullOrEmpty(pulsarProperties.getTokenAuthValue())
+        ) throw new ClientInitException("You cannot use multiple auth options.");
+
+        final ClientBuilder pulsarClientBuilder = PulsarClient.builder()
             .serviceUrl(pulsarProperties.getServiceUrl())
             .ioThreads(pulsarProperties.getIoThreads())
             .listenerThreads(pulsarProperties.getListenerThreads())
@@ -44,7 +53,19 @@ public class PulsarAutoConfiguration {
             .tlsTrustStorePath(pulsarProperties.getTlsTrustStorePath())
             .tlsTrustStoreType(pulsarProperties.getTlsTrustStoreType())
             .allowTlsInsecureConnection(pulsarProperties.isAllowTlsInsecureConnection())
-            .enableTlsHostnameVerification(pulsarProperties.isEnableTlsHostnameVerification())
-            .build();
+            .enableTlsHostnameVerification(pulsarProperties.isEnableTlsHostnameVerification());
+
+        if (!Strings.isNullOrEmpty(pulsarProperties.getTlsAuthCertFilePath()) &&
+            !Strings.isNullOrEmpty(pulsarProperties.getTlsAuthKeyFilePath())) {
+            pulsarClientBuilder.authentication(AuthenticationFactory
+                .TLS(pulsarProperties.getTlsAuthCertFilePath(), pulsarProperties.getTlsAuthKeyFilePath()));
+        }
+
+        if (!Strings.isNullOrEmpty(pulsarProperties.getTokenAuthValue())) {
+            pulsarClientBuilder.authentication(AuthenticationFactory
+                .token(pulsarProperties.getTokenAuthValue()));
+        }
+
+        return pulsarClientBuilder.build();
     }
 }

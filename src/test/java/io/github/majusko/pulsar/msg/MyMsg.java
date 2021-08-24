@@ -7,6 +7,7 @@ public class MyMsg {
     }
 
     public MyMsg() {
+        System.out.println();
     }
 
     public String getData() {
