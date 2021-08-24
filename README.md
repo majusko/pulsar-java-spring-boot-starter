@@ -8,7 +8,7 @@
 
 ## Quick Start
 
-Simple start consist only from 3 simple steps.
+Simple steps to start using the library.
 
 #### 1. Add Maven dependency
 
@@ -20,7 +20,25 @@ Simple start consist only from 3 simple steps.
 </dependency>
 ```
 
-#### 2. Configure Producer
+#### 2. Create your data class
+
+```java
+
+public class MyMsg {
+
+    private final String data;
+    
+    public MyMsg(String data) {
+        this.data = data;
+    }
+
+    public String getData() {
+        return data;
+    }
+}
+```
+
+#### 3. Configure Producer
 
 Create your configuration class with all producers you would like to register.
 
@@ -46,14 +64,14 @@ class MyProducer {
 	@Autowired
 	private PulsarTemplate<MyMsg> producer;
 
-	void send(MyMsg msg) {
-		producer.send("my-topic", msg);
+	void sendHelloWorld() throws PulsarClientException {
+		producer.send("my-topic", new MyMsg("Hello world!"));
 	}
 }
 
 ```
 
-#### 3. Configure Consumer
+#### 4. Configure Consumer
 
 Annotate your service method with `@PulsarConsumer` annotation.
 
@@ -62,13 +80,14 @@ Annotate your service method with `@PulsarConsumer` annotation.
 class MyConsumer {
     
     @PulsarConsumer(topic="my-topic", clazz=MyMsg.class)
-    void consume(MyMsg msg) { 
-        producer.send(TOPIC, msg); 
+    void consume(MyMsg msg) {
+    	// TODO process your message
+    	System.out.println(msg.getData());
     }
 }
 ```
 
-#### 4. Minimal Configuration
+#### 5. Minimal Configuration
 
 ```properties
 
