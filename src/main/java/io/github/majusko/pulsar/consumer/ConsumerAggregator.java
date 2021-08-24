@@ -9,6 +9,8 @@ import io.github.majusko.pulsar.properties.ConsumerProperties;
 import io.github.majusko.pulsar.utils.SchemaUtils;
 import io.github.majusko.pulsar.utils.UrlBuildService;
 import org.apache.pulsar.client.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 @DependsOn({"pulsarClient", "consumerCollector"})
 public class ConsumerAggregator implements EmbeddedValueResolverAware {
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final EmitterProcessor<FailedMessage> exceptionEmitter = EmitterProcessor.create();
     private final ConsumerCollector consumerCollector;
     private final PulsarClient pulsarClient;
@@ -63,27 +66,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                 .topic(urlBuildService
                     .buildTopicUrl(stringValueResolver
                         .resolveStringValue(holder.getAnnotation().topic())))
-                .subscriptionType(holder.getAnnotation().subscriptionType())
-                .messageListener((consumer, msg) -> {
-
-                    // TODO Extract to separate method.
-
-                    try {
-                        final Method method = holder.getHandler();
-                        method.setAccessible(true);
-
-                        if (holder.isWrapped()) {
-                            method.invoke(holder.getBean(), wrapMessage(msg));
-                        } else {
-                            method.invoke(holder.getBean(), msg.getValue());
-                        }
-
-                        consumer.acknowledge(msg);
-                    } catch (Exception e) {
-                        consumer.negativeAcknowledge(msg);
-                        exceptionEmitter.onNext(new FailedMessage(e, consumer, msg));
-                    }
-                });
+                .subscriptionType(holder.getAnnotation().subscriptionType());
 
             if (consumerProperties.getAckTimeoutMs() > 0) {
                 consumerBuilder.ackTimeout(consumerProperties.getAckTimeoutMs(), TimeUnit.MILLISECONDS);
@@ -91,40 +74,61 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
 
             buildDeadLetterPolicy(holder, consumerBuilder);
 
-            Consumer<?> consumer = consumerBuilder.subscribe();
-
-            if (holder.getAnnotation().syncConsumer()) {
-
-                int pollSpeed = getSyncConsumerPollSpeed(holder);
-
-                Executors.newSingleThreadExecutor().submit(() -> {
-
-                    try {
-                        while (!Thread.currentThread().isInterrupted()) {
-                            try {
-
-                                Message<?> msg = consumer.receive();
-
-                                // TODO exetue listner content
-
-                                wait(pollSpeed);
-                            } catch (InterruptedException ex) {
-                                Thread.currentThread().interrupt();
-                            }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
-            } else {
-
-                // TODO register listener instead
+            if (!holder.getAnnotation().syncConsumer()) {
+                consumerBuilder.messageListener((consumer, msg) -> consumeMessage(holder, msg, consumer));
             }
 
+            final Consumer<?> consumer = consumerBuilder.subscribe();
+
+            if (holder.getAnnotation().syncConsumer()) {
+                runSyncConsumer(holder, consumer);
+            }
 
             return consumer;
         } catch (PulsarClientException e) {
             throw new ConsumerInitException("Failed to init consumer.", e);
+        }
+    }
+
+    private void runSyncConsumer(ConsumerHolder holder, Consumer<?> consumer) {
+        final int pollSpeed = getSyncConsumerPollSpeed(holder);
+
+        Executors.newSingleThreadExecutor().submit(() -> {
+
+            try {
+                while (!Thread.currentThread().isInterrupted()) {
+                    try {
+
+                        final Message<?> msg = consumer.receive();
+
+                        consumeMessage(holder, msg, consumer);
+
+                        wait(pollSpeed);
+                    } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("Exception during the sync consumer process.", e);
+            }
+        });
+    }
+
+    private void consumeMessage(ConsumerHolder holder, Message<?> msg, Consumer<?> consumer) {
+        try {
+            final Method method = holder.getHandler();
+            method.setAccessible(true);
+
+            if (holder.isWrapped()) {
+                method.invoke(holder.getBean(), wrapMessage(msg));
+            } else {
+                method.invoke(holder.getBean(), msg.getValue());
+            }
+
+            consumer.acknowledge(msg);
+        } catch (Exception e) {
+            consumer.negativeAcknowledge(msg);
+            exceptionEmitter.onNext(new FailedMessage(e, consumer, msg));
         }
     }
 
