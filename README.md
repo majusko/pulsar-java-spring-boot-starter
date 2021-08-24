@@ -123,6 +123,16 @@ pulsar.tlsTrustStoreType=JKS
 pulsar.useKeyStoreTls=false
 ```
 
+Pulsar client authentication
+```properties
+# TLS
+pulsar.tls-auth-cert-file-path=/etc/pulsar/tls/cert.cert.pem
+pulsar.tls-auth-key-file-path=/etc/pulsar/tls/key.key-pk8.pem
+
+#Token based
+pulsar.token-auth-value=43th4398gh340gf34gj349gh304ghryj34fh
+```
+
 ### Properties explained:
 
 #### PulsarClient
@@ -139,7 +149,8 @@ pulsar.useKeyStoreTls=false
 - `pulsar.namespace` - Namespace separation. For example: app1/app2 OR dev/staging/prod. More in [Namespaces docs](https://pulsar.apache.org/docs/en/concepts-messaging/#namespaces).
 - `pulsar.tenant` - Pulsar multi-tenancy support. More in [Multi Tenancy docs](https://pulsar.apache.org/docs/en/concepts-multi-tenancy/).
 
-Change only in case TLS is enabled (By using `pulsar+ssl://` as `pulsar.service-url` value prefix.)
+**Change only in case TLS is enabled** (By using `pulsar+ssl://` as `pulsar.service-url` value prefix.)
+
 - `pulsar.tlsTrustCertsFilePath` -  Path to the trusted TLS certificate file
 - `pulsar.tlsCiphers` - A list of cipher suites. This is a named combination of authentication, encryption, MAC and key exchange algorithm used to negotiate the security settings for a network connection using TLS or SSL network protocol. By default, all the available cipher suites are supported.
 - `pulsar.tlsProtocols` - The SSL protocol used to generate the SSLContext.
@@ -149,6 +160,12 @@ Change only in case TLS is enabled (By using `pulsar+ssl://` as `pulsar.service-
 - `pulsar.useKeyStoreTls` - Whether use KeyStore type as tls configuration parameter. False means use default pem type configuration.
 - `pulsar.allowTlsInsecureConnection` - Whether the Pulsar client accepts untrusted TLS certificate from broker
 - `pulsar.enableTlsHostnameVerification` - Whether to enable TLS hostname verification
+
+**Pulsar client authentication**
+
+- `pulsar.tls-auth-cert-file-path` - the path to the TLS client public key
+- `pulsar.tls-auth-key-file-path` - the path to the TLS client private key
+- `pulsar.token-auth-value` - the client auth token
 
 #### Consumer
 - `pulsar.consumer.default.dead-letter-policy-max-redeliver-count` - How many times should pulsar try to retry sending the message to consumer.

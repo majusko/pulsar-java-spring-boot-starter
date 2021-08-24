@@ -28,6 +28,9 @@ public class PulsarProperties {
     private boolean useKeyStoreTls = false;
     private boolean allowTlsInsecureConnection = false;
     private boolean enableTlsHostnameVerification = false;
+    private String tlsAuthCertFilePath = null;
+    private String tlsAuthKeyFilePath = null;
+    private String tokenAuthValue = null;
 
     public String getServiceUrl() {
         return serviceUrl;
@@ -195,5 +198,29 @@ public class PulsarProperties {
 
     public void setEnableTlsHostnameVerification(boolean enableTlsHostnameVerification) {
         this.enableTlsHostnameVerification = enableTlsHostnameVerification;
+    }
+
+    public String getTlsAuthCertFilePath() {
+        return tlsAuthCertFilePath;
+    }
+
+    public void setTlsAuthCertFilePath(String tlsAuthCertFilePath) {
+        this.tlsAuthCertFilePath = tlsAuthCertFilePath;
+    }
+
+    public String getTlsAuthKeyFilePath() {
+        return tlsAuthKeyFilePath;
+    }
+
+    public void setTlsAuthKeyFilePath(String tlsAuthKeyFilePath) {
+        this.tlsAuthKeyFilePath = tlsAuthKeyFilePath;
+    }
+
+    public String getTokenAuthValue() {
+        return tokenAuthValue;
+    }
+
+    public void setTokenAuthValue(String tokenAuthValue) {
+        this.tokenAuthValue = tokenAuthValue;
     }
 }
