@@ -19,6 +19,7 @@ import reactor.core.publisher.EmitterProcessor;
 import javax.annotation.PostConstruct;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -64,6 +65,9 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                         .resolveStringValue(holder.getAnnotation().topic())))
                 .subscriptionType(holder.getAnnotation().subscriptionType())
                 .messageListener((consumer, msg) -> {
+
+                    // TODO Extract to separate method.
+
                     try {
                         final Method method = holder.getHandler();
                         method.setAccessible(true);
@@ -87,10 +91,49 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
 
             buildDeadLetterPolicy(holder, consumerBuilder);
 
-            return consumerBuilder.subscribe();
+            Consumer<?> consumer = consumerBuilder.subscribe();
+
+            if (holder.getAnnotation().syncConsumer()) {
+
+                int pollSpeed = getSyncConsumerPollSpeed(holder);
+
+                Executors.newSingleThreadExecutor().submit(() -> {
+
+                    try {
+                        while (!Thread.currentThread().isInterrupted()) {
+                            try {
+
+                                Message<?> msg = consumer.receive();
+
+                                // TODO exetue listner content
+
+                                wait(pollSpeed);
+                            } catch (InterruptedException ex) {
+                                Thread.currentThread().interrupt();
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            } else {
+
+                // TODO register listener instead
+            }
+
+
+            return consumer;
         } catch (PulsarClientException e) {
             throw new ConsumerInitException("Failed to init consumer.", e);
         }
+    }
+
+    private int getSyncConsumerPollSpeed(ConsumerHolder holder) {
+        if (holder.getAnnotation().customSyncConsumerPollSpeedInMs() <= 0) {
+            return consumerProperties.getSyncConsumerPollSpeedInMs();
+        }
+
+        return holder.getAnnotation().customSyncConsumerPollSpeedInMs();
     }
 
     public void buildDeadLetterPolicy(ConsumerHolder holder, ConsumerBuilder<?> consumerBuilder) {

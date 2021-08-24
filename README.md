@@ -104,6 +104,7 @@ pulsar.tenant=public
 #Consumer
 pulsar.consumer.default.dead-letter-policy-max-redeliver-count=-1
 pulsar.consumer.default.ack-timeout-ms=3000
+pulsar.consumer.sync-consumer-poll-speed-in-ms=100
 
 ```
 

@@ -41,4 +41,14 @@ public @interface PulsarConsumer {
      * Name of the dead topic where the failing messages will be sent.
      */
     String deadLetterTopic() default "";
+
+    /**
+     * Whether to use async or sync consumer to read messages.
+     */
+    boolean syncConsumer() default false;
+
+    /**
+     * Possibility to set specific polling speed for this particular consumer in case the `syncConsumer` is set to true. Default value is `syncConsumerPollSpeedInMs` in `application.properties`.
+     */
+    int customSyncConsumerPollSpeedInMs() default -1;
 }
