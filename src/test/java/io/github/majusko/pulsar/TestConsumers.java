@@ -26,8 +26,13 @@ public class TestConsumers {
     public AtomicBoolean mockRetryCountListenerReceived = new AtomicBoolean(false);
     public AtomicBoolean subscribeToDeadLetterTopicReceived = new AtomicBoolean(false);
     public AtomicBoolean subscribeToCustomSpelTopicConfig = new AtomicBoolean(false);
+    public AtomicBoolean customConsumerTestReceived = new AtomicBoolean(false);
     public AtomicInteger failTwiceRetryCount = new AtomicInteger(0);
     public AtomicInteger topicOverflowDueToExceptionRetryCount = new AtomicInteger(0);
+
+    public static final String CUSTOM_CONSUMER_NAME = "custom-consumer-name";
+    public static final String CUSTOM_SUBSCRIPTION_NAME= "custom-subscription-name";
+    public static final String CUSTOM_CONSUMER_TOPIC = "custom-consumer-topic";
 
     @PulsarConsumer(topic = "topic-one", clazz = MyMsg.class, serialization = Serialization.JSON)
     public void topicOneListener(MyMsg myMsg) {
@@ -125,5 +130,16 @@ public class TestConsumers {
         Assertions.assertNotNull(myMsg);
         Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, myMsg.getData());
         subscribeToCustomSpelTopicConfig.set(true);
+    }
+
+    @PulsarConsumer(
+        topic = CUSTOM_CONSUMER_TOPIC,
+        clazz = MyMsg.class,
+        consumerName = CUSTOM_CONSUMER_NAME,
+        subscriptionName = CUSTOM_SUBSCRIPTION_NAME)
+    public void customConsumer(MyMsg myMsg) {
+        Assertions.assertNotNull(myMsg);
+        Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, myMsg.getData());
+        customConsumerTestReceived.set(true);
     }
 }

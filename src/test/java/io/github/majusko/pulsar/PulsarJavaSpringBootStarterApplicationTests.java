@@ -126,7 +126,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void testConsumerRegistration1() throws Exception {
         final List<Consumer> consumers = consumerAggregator.getConsumers();
 
-        Assertions.assertEquals(12, consumers.size());
+        Assertions.assertEquals(13, consumers.size());
 
         final Consumer<?> consumer =
             consumers.stream().filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl("topic-one"))).findFirst().orElseThrow(Exception::new);
@@ -157,7 +157,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         final Map<String, ImmutablePair<Class<?>, Serialization>> topics = producerFactory.getTopics();
 
-        Assertions.assertEquals(12, topics.size());
+        Assertions.assertEquals(13, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
@@ -223,5 +223,19 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void dealLetterTopicDelivery() throws Exception {
         producer.send("topic-deliver-to-dead-letter", new MyMsg(VALIDATION_STRING));
         await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.subscribeToDeadLetterTopicReceived.get());
+    }
+
+    @Test
+    void consumerNamesOverrideTest() throws Exception {
+        final Consumer consumer = consumerAggregator.getConsumers().stream().filter($ ->
+            $.getConsumerName().equals(TestConsumers.CUSTOM_CONSUMER_NAME) &&
+                $.getSubscription().equals(TestConsumers.CUSTOM_SUBSCRIPTION_NAME))
+            .findFirst()
+            .orElseThrow(() -> new Exception("Missing tested consumer."));
+
+        Assertions.assertEquals(urlBuildService.buildTopicUrl(TestConsumers.CUSTOM_CONSUMER_TOPIC), consumer.getTopic());
+
+        producer.send(TestConsumers.CUSTOM_CONSUMER_TOPIC, new MyMsg(VALIDATION_STRING));
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.customConsumerTestReceived.get());
     }
 }
