@@ -4,7 +4,7 @@ import io.github.majusko.pulsar.annotation.PulsarProducer;
 import io.github.majusko.pulsar.collector.ProducerHolder;
 import io.github.majusko.pulsar.error.exception.ProducerInitException;
 import io.github.majusko.pulsar.utils.SchemaUtils;
-import io.github.majusko.pulsar.utils.TopicUrlService;
+import io.github.majusko.pulsar.utils.UrlBuildService;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
@@ -22,15 +22,15 @@ import java.util.stream.Collectors;
 public class ProducerCollector implements BeanPostProcessor, EmbeddedValueResolverAware {
 
     private final PulsarClient pulsarClient;
-    private final TopicUrlService topicUrlService;
+    private final UrlBuildService urlBuildService;
 
     private final Map<String, Producer> producers = new ConcurrentHashMap<>();
 
     private StringValueResolver stringValueResolver;
 
-    public ProducerCollector(PulsarClient pulsarClient, TopicUrlService topicUrlService) {
+    public ProducerCollector(PulsarClient pulsarClient, UrlBuildService urlBuildService) {
         this.pulsarClient = pulsarClient;
-        this.topicUrlService = topicUrlService;
+        this.urlBuildService = urlBuildService;
     }
 
     @Override
@@ -57,7 +57,7 @@ public class ProducerCollector implements BeanPostProcessor, EmbeddedValueResolv
     private Producer<?> buildProducer(ProducerHolder holder) {
         try {
             return pulsarClient.newProducer(getSchema(holder))
-                .topic(topicUrlService.buildTopicUrl(holder.getTopic()))
+                .topic(urlBuildService.buildTopicUrl(holder.getTopic()))
                 .create();
         } catch (PulsarClientException e) {
             throw new ProducerInitException("Failed to init producer.", e);
