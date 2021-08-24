@@ -126,7 +126,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void testConsumerRegistration1() throws Exception {
         final List<Consumer> consumers = consumerAggregator.getConsumers();
 
-        Assertions.assertEquals(13, consumers.size());
+        Assertions.assertEquals(15, consumers.size());
 
         final Consumer<?> consumer =
             consumers.stream().filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl("topic-one"))).findFirst().orElseThrow(Exception::new);
@@ -157,7 +157,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         final Map<String, ImmutablePair<Class<?>, Serialization>> topics = producerFactory.getTopics();
 
-        Assertions.assertEquals(13, topics.size());
+        Assertions.assertEquals(15, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
@@ -237,5 +237,32 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         producer.send(TestConsumers.CUSTOM_CONSUMER_TOPIC, new MyMsg(VALIDATION_STRING));
         await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.customConsumerTestReceived.get());
+    }
+
+    @Test
+    void asyncAndSyncConsumerTests() throws Exception {
+
+        System.out.println("time start: " + testConsumers.asyncConsumersLastUpdate.get());
+
+        producer.send("async-consumer-topic", new MyMsg(VALIDATION_STRING));
+        producer.send("async-consumer-topic", new MyMsg(VALIDATION_STRING));
+        producer.send("async-consumer-topic", new MyMsg(VALIDATION_STRING));
+
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.asyncConsumersReceived.get() == 3);
+
+        System.out.println("time end : " + testConsumers.asyncConsumersLastUpdate.get());
+
+        Thread.sleep(3000);
+
+        System.out.println("time start: " + testConsumers.syncConsumersLastUpdate.get());
+
+        producer.send("sync-consumer-topic", new MyMsg(VALIDATION_STRING));
+        producer.send("sync-consumer-topic", new MyMsg(VALIDATION_STRING));
+        producer.send("sync-consumer-topic", new MyMsg(VALIDATION_STRING));
+
+
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.syncConsumersReceived.get() == 3);
+        System.out.println("time : " + testConsumers.syncConsumersLastUpdate.get());
+
     }
 }

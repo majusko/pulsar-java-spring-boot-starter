@@ -10,8 +10,10 @@ import org.junit.jupiter.api.Assertions;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 public class TestConsumers {
@@ -29,6 +31,10 @@ public class TestConsumers {
     public AtomicBoolean customConsumerTestReceived = new AtomicBoolean(false);
     public AtomicInteger failTwiceRetryCount = new AtomicInteger(0);
     public AtomicInteger topicOverflowDueToExceptionRetryCount = new AtomicInteger(0);
+    public AtomicReference<LocalDateTime> asyncConsumersLastUpdate = new AtomicReference<>(null);
+    public AtomicInteger asyncConsumersReceived = new AtomicInteger(0);
+    public AtomicReference<LocalDateTime> syncConsumersLastUpdate = new AtomicReference<>(null);
+    public AtomicInteger syncConsumersReceived = new AtomicInteger(0);
 
     public static final String CUSTOM_CONSUMER_NAME = "custom-consumer-name";
     public static final String CUSTOM_SUBSCRIPTION_NAME= "custom-subscription-name";
@@ -144,13 +150,41 @@ public class TestConsumers {
     }
 
     @PulsarConsumer(
-        topic = "topic-one",
+        topic = "async-consumer-topic",
         clazz = MyMsg.class,
         serialization = Serialization.JSON,
-        syncConsumer = true,
-        customSyncConsumerPollSpeedInMs = 1000)
-    public void topicOneListener(MyMsg myMsg) {
+        syncConsumer = false)
+    public void asyncConsumerTopic(MyMsg myMsg) throws InterruptedException {
         Assertions.assertNotNull(myMsg);
-        mockTopicListenerReceived.set(true);
+        Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, myMsg.getData());
+
+        Thread.sleep(1000);
+
+
+        LocalDateTime time = LocalDateTime.now();
+
+        System.out.println("time: " + time.toString());
+
+        asyncConsumersLastUpdate.set(time);
+        asyncConsumersReceived.getAndIncrement();
+    }
+
+    @PulsarConsumer(
+        topic = "sync-consumer-topic",
+        clazz = MyMsg.class,
+        serialization = Serialization.JSON,
+        syncConsumer = true)
+    public void syncConsumerTopic(MyMsg myMsg) throws InterruptedException {
+        Assertions.assertNotNull(myMsg);
+        Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, myMsg.getData());
+
+        Thread.sleep(1000);
+
+        LocalDateTime time = LocalDateTime.now();
+
+        System.out.println("time: " + time.toString());
+
+        syncConsumersLastUpdate.set(time);
+        syncConsumersReceived.getAndIncrement();
     }
 }
