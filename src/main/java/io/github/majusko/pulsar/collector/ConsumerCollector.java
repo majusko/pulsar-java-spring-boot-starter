@@ -1,12 +1,10 @@
 package io.github.majusko.pulsar.collector;
 
 import io.github.majusko.pulsar.annotation.PulsarConsumer;
-import org.springframework.beans.factory.annotation.Value;
+import io.github.majusko.pulsar.utils.UrlBuildService;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Configuration;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
@@ -18,10 +16,13 @@ import static io.github.majusko.pulsar.utils.SchemaUtils.getParameterType;
 @Configuration
 public class ConsumerCollector implements BeanPostProcessor {
 
-    @Value("${pulsar.consumerNameDelimiter:}")
-    private String consumerNameDelimiter;
+    private final UrlBuildService urlBuildService;
 
     private Map<String, ConsumerHolder> consumers = new ConcurrentHashMap<>();
+
+    public ConsumerCollector(UrlBuildService urlBuildService) {
+        this.urlBuildService = urlBuildService;
+    }
 
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
@@ -30,7 +31,7 @@ public class ConsumerCollector implements BeanPostProcessor {
         consumers.putAll(Arrays.stream(beanClass.getDeclaredMethods())
             .filter($ -> $.isAnnotationPresent(PulsarConsumer.class))
             .collect(Collectors.toMap(
-                method -> getConsumerName(beanClass, method),
+                method -> urlBuildService.buildConsumerName(beanClass, method),
                 method -> new ConsumerHolder(method.getAnnotation(PulsarConsumer.class), method, bean,
                     getParameterType(method)))));
 
@@ -48,12 +49,5 @@ public class ConsumerCollector implements BeanPostProcessor {
 
     public Optional<ConsumerHolder> getConsumer(String methodDescriptor) {
         return Optional.ofNullable(consumers.get(methodDescriptor));
-    }
-
-    public String getConsumerName(Class<?> clazz, Method method) {
-        return clazz.getName() + consumerNameDelimiter + method.getName() + Arrays
-            .stream(method.getGenericParameterTypes())
-            .map(Type::getTypeName)
-            .collect(Collectors.joining(consumerNameDelimiter));
     }
 }

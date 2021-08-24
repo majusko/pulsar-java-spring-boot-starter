@@ -20,6 +20,18 @@ public @interface PulsarConsumer {
     SubscriptionType subscriptionType() default SubscriptionType.Exclusive;
 
     /**
+     * (Optional) Consumer names are auto-generated but in case you wish to use your custom consumer names,
+     * feel free to override it.
+     */
+    String consumerName() default "";
+
+    /**
+     * (Optional) Subscription names are auto-generated but in case you wish to use your custom subscription names,
+     * feel free to override it.
+     */
+    String subscriptionName() default "";
+
+    /**
      * Maximum number of times that a message will be redelivered before being sent to the dead letter queue.
      * Note: Currently, dead letter topic is enabled only in the shared subscription mode.
      */
