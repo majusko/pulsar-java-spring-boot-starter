@@ -91,19 +91,19 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
     }
 
     private void runSyncConsumer(ConsumerHolder holder, Consumer<?> consumer) {
-        final int pollSpeed = getSyncConsumerPollSpeed(holder);
-
         Executors.newSingleThreadExecutor().execute(() -> {
+            final int pollSpeed = getSyncConsumerPollSpeed(holder);
 
             try {
-                while (!Thread.currentThread().isInterrupted()) {
+                while (holder.getAnnotation().syncConsumer()) {
                     try {
-
                         final Message<?> msg = consumer.receive();
 
                         consumeMessage(holder, msg, consumer);
 
-                        wait(pollSpeed);
+                        if(pollSpeed > 0) {
+                            wait(pollSpeed);
+                        }
                     } catch (InterruptedException ex) {
                         Thread.currentThread().interrupt();
                     }

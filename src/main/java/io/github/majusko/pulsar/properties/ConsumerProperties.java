@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ConsumerProperties {
     int deadLetterPolicyMaxRedeliverCount = -1;
     int ackTimeoutMs = 0;
-    int syncConsumerPollSpeedInMs = 100;
+    int syncConsumerPollSpeedInMs = -1;
     boolean syncConsumerFailSilently = true;
 
     public int getDeadLetterPolicyMaxRedeliverCount() {

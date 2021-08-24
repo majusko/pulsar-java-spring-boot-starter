@@ -142,4 +142,15 @@ public class TestConsumers {
         Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, myMsg.getData());
         customConsumerTestReceived.set(true);
     }
+
+    @PulsarConsumer(
+        topic = "topic-one",
+        clazz = MyMsg.class,
+        serialization = Serialization.JSON,
+        syncConsumer = true,
+        customSyncConsumerPollSpeedInMs = 1000)
+    public void topicOneListener(MyMsg myMsg) {
+        Assertions.assertNotNull(myMsg);
+        mockTopicListenerReceived.set(true);
+    }
 }
