@@ -189,6 +189,7 @@ pulsar.token-auth-value=43th4398gh340gf34gj349gh304ghryj34fh
 #### Consumer
 - `pulsar.consumer.default.dead-letter-policy-max-redeliver-count` - How many times should pulsar try to retry sending the message to consumer.
 - `pulsar.consumer.default.ack-timeout-ms` - How soon should be the message acked and how soon will dead letter mechanism try to retry to send the message.
+- `pulsar.consumer.default.subscription-type` - By default all subscriptions are `Exclusive`. You can override this default value here globally or set individualy in each `@PulsarConsumer` annotation.
 
 ### Additional usages
 

@@ -27,6 +27,7 @@ public class TestConsumers {
     public AtomicBoolean subscribeToDeadLetterTopicReceived = new AtomicBoolean(false);
     public AtomicBoolean subscribeToCustomSpElTopicConfig = new AtomicBoolean(false);
     public AtomicBoolean subscribeToCustomSpElConsumerAndSubConfig = new AtomicBoolean(false);
+    public AtomicBoolean subscribeToSharedTopicSubscription = new AtomicBoolean(false);
     public AtomicBoolean customConsumerTestReceived = new AtomicBoolean(false);
     public AtomicInteger failTwiceRetryCount = new AtomicInteger(0);
     public AtomicInteger topicOverflowDueToExceptionRetryCount = new AtomicInteger(0);
@@ -35,6 +36,7 @@ public class TestConsumers {
     public static final String CUSTOM_SUBSCRIPTION_NAME= "custom-subscription-name";
     public static final String CUSTOM_CONSUMER_TOPIC = "custom-consumer-topic";
     public static final String CUSTOM_SUB_AND_CONSUMER_TOPIC = "custom-sub-and-consumer";
+    public static final String SHARED_SUB_TEST = "shared-sub-consumer";
 
     @PulsarConsumer(topic = "topic-one", clazz = MyMsg.class, serialization = Serialization.JSON)
     public void topicOneListener(MyMsg myMsg) {
@@ -154,5 +156,15 @@ public class TestConsumers {
         Assertions.assertNotNull(myMsg);
         Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, myMsg.getData());
         subscribeToCustomSpElConsumerAndSubConfig.set(true);
+    }
+
+    @PulsarConsumer(
+        topic = SHARED_SUB_TEST,
+        clazz = MyMsg.class,
+        subscriptionType = SubscriptionType.Shared)
+    public void sharedTopicSubscription(MyMsg myMsg) {
+        Assertions.assertNotNull(myMsg);
+        Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, myMsg.getData());
+        subscribeToSharedTopicSubscription.set(true);
     }
 }
