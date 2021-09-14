@@ -16,6 +16,7 @@ import org.apache.pulsar.client.api.PulsarClientException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
@@ -74,6 +75,12 @@ class PulsarJavaSpringBootStarterApplicationTests {
     @Autowired
     private UrlBuildService urlBuildService;
 
+    @Value("${my.custom.subscription.name}")
+    private String customSubscriptionName;
+
+    @Value("${my.custom.consumer.name}")
+    private String customConsumerName;
+
     @Container
     static PulsarContainer pulsarContainer = new PulsarContainer(DockerImageName.parse("apachepulsar/pulsar:latest"));
 
@@ -126,7 +133,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void testConsumerRegistration1() throws Exception {
         final List<Consumer> consumers = consumerAggregator.getConsumers();
 
-        Assertions.assertEquals(13, consumers.size());
+        Assertions.assertEquals(14, consumers.size());
 
         final Consumer<?> consumer =
             consumers.stream().filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl("topic-one"))).findFirst().orElseThrow(Exception::new);
@@ -157,7 +164,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         final Map<String, ImmutablePair<Class<?>, Serialization>> topics = producerFactory.getTopics();
 
-        Assertions.assertEquals(13, topics.size());
+        Assertions.assertEquals(14, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
@@ -216,7 +223,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
     @Test
     void testSpelSupportConsumerAndProducer() throws Exception {
         producerForStringTopic.send("${my.custom.topic.name}", VALIDATION_STRING);
-        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.subscribeToCustomSpelTopicConfig.get());
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.subscribeToCustomSpElTopicConfig.get());
     }
 
     @Test
@@ -227,8 +234,8 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
     @Test
     void consumerNamesOverrideTest() throws Exception {
-        final Consumer consumer = consumerAggregator.getConsumers().stream().filter($ ->
-            $.getConsumerName().equals(TestConsumers.CUSTOM_CONSUMER_NAME) &&
+        final Consumer consumer = consumerAggregator.getConsumers().stream()
+            .filter($ -> $.getConsumerName().equals(TestConsumers.CUSTOM_CONSUMER_NAME) &&
                 $.getSubscription().equals(TestConsumers.CUSTOM_SUBSCRIPTION_NAME))
             .findFirst()
             .orElseThrow(() -> new Exception("Missing tested consumer."));
@@ -237,5 +244,19 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         producer.send(TestConsumers.CUSTOM_CONSUMER_TOPIC, new MyMsg(VALIDATION_STRING));
         await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.customConsumerTestReceived.get());
+    }
+
+    @Test
+    void consumerNamesOverrideWithSpELSupportTest() throws Exception {
+        final Consumer consumer = consumerAggregator.getConsumers().stream()
+            .filter($ -> $.getConsumerName().equals(customConsumerName) &&
+                $.getSubscription().equals(customSubscriptionName))
+            .findFirst()
+            .orElseThrow(() -> new Exception("Missing tested consumer."));
+
+        Assertions.assertEquals(urlBuildService.buildTopicUrl(TestConsumers.CUSTOM_SUB_AND_CONSUMER_TOPIC), consumer.getTopic());
+
+        producer.send(TestConsumers.CUSTOM_SUB_AND_CONSUMER_TOPIC, new MyMsg(VALIDATION_STRING));
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.subscribeToCustomSpElConsumerAndSubConfig.get());
     }
 }

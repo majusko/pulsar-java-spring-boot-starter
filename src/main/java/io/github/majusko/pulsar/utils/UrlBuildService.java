@@ -33,9 +33,9 @@ public class UrlBuildService {
             "/" + topic;
     }
 
-    public String buildPulsarConsumerName(String customConsumerName, String consumerName) {
+    public String buildPulsarConsumerName(String customConsumerName, String generatedConsumerName) {
         if(Strings.isNullOrEmpty(customConsumerName)){
-            return CONSUMER_NAME_PREFIX + consumerNameDelimiter + consumerName;
+            return CONSUMER_NAME_PREFIX + consumerNameDelimiter + generatedConsumerName;
         }
 
         return customConsumerName;
