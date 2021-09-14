@@ -37,6 +37,7 @@ public class TestConsumers {
     public static final String CUSTOM_CONSUMER_TOPIC = "custom-consumer-topic";
     public static final String CUSTOM_SUB_AND_CONSUMER_TOPIC = "custom-sub-and-consumer";
     public static final String SHARED_SUB_TEST = "shared-sub-consumer";
+    public static final String EXCLUSIVE_SUB_TEST = "exclusive-sub-consumer";
 
     @PulsarConsumer(topic = "topic-one", clazz = MyMsg.class, serialization = Serialization.JSON)
     public void topicOneListener(MyMsg myMsg) {
@@ -163,6 +164,16 @@ public class TestConsumers {
         clazz = MyMsg.class,
         subscriptionType = SubscriptionType.Shared)
     public void sharedTopicSubscription(MyMsg myMsg) {
+        Assertions.assertNotNull(myMsg);
+        Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, myMsg.getData());
+        subscribeToSharedTopicSubscription.set(true);
+    }
+
+    @PulsarConsumer(
+        topic = EXCLUSIVE_SUB_TEST,
+        clazz = MyMsg.class,
+        subscriptionType = SubscriptionType.Exclusive)
+    public void exclusiveTopicSubscription(MyMsg myMsg) {
         Assertions.assertNotNull(myMsg);
         Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, myMsg.getData());
         subscribeToSharedTopicSubscription.set(true);

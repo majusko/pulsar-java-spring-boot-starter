@@ -138,7 +138,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void testConsumerRegistration1() throws Exception {
         final List<Consumer> consumers = consumerAggregator.getConsumers();
 
-        Assertions.assertEquals(14, consumers.size());
+        Assertions.assertEquals(16, consumers.size());
 
         final Consumer<?> consumer =
             consumers.stream().filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl("topic-one"))).findFirst().orElseThrow(Exception::new);
@@ -169,7 +169,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         final Map<String, ImmutablePair<Class<?>, Serialization>> topics = producerFactory.getTopics();
 
-        Assertions.assertEquals(14, topics.size());
+        Assertions.assertEquals(16, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
@@ -282,6 +282,26 @@ class PulsarJavaSpringBootStarterApplicationTests {
         Assertions.assertEquals(SubscriptionType.Shared, conf.getSubscriptionType());
 
         producer.send(TestConsumers.SHARED_SUB_TEST, new MyMsg(VALIDATION_STRING));
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.subscribeToSharedTopicSubscription.get());
+    }
+
+    @Test
+    void exclusiveSubscriptionOverride() throws Exception {
+        final ConsumerBase<?> consumer = (ConsumerBase<?>) consumerAggregator.getConsumers().stream()
+            .filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl(TestConsumers.EXCLUSIVE_SUB_TEST)))
+            .findFirst()
+            .orElseThrow(() -> new Exception("Missing tested consumer."));
+
+        final Field f = ConsumerBase.class.getDeclaredField("conf");
+
+        f.setAccessible(true);
+
+        final ConsumerConfigurationData<?> conf = (ConsumerConfigurationData<?>) f.get(consumer);
+
+        Assertions.assertEquals(urlBuildService.buildTopicUrl(TestConsumers.EXCLUSIVE_SUB_TEST), consumer.getTopic());
+        Assertions.assertEquals(SubscriptionType.Exclusive, conf.getSubscriptionType());
+
+        producer.send(TestConsumers.EXCLUSIVE_SUB_TEST, new MyMsg(VALIDATION_STRING));
         await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.subscribeToSharedTopicSubscription.get());
     }
 }

@@ -102,6 +102,8 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
     private SubscriptionType getSubscriptionType(ConsumerHolder holder) throws ClientInitException {
         SubscriptionType subscriptionType = Arrays.stream(holder.getAnnotation().subscriptionType()).findFirst().orElse(null);
 
+        String aa = consumerProperties.getSubscriptionType();
+
         if (subscriptionType == null && Strings.isNullOrEmpty(consumerProperties.getSubscriptionType())) {
             subscriptionType = DEFAULT_SUBSCRIPTION_TYPE;
         } else if (subscriptionType == null && !Strings.isNullOrEmpty(consumerProperties.getSubscriptionType())) {
