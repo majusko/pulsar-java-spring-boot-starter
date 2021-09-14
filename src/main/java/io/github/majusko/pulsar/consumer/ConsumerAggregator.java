@@ -1,9 +1,11 @@
 package io.github.majusko.pulsar.consumer;
 
+import com.google.common.base.Strings;
 import io.github.majusko.pulsar.PulsarMessage;
 import io.github.majusko.pulsar.collector.ConsumerCollector;
 import io.github.majusko.pulsar.collector.ConsumerHolder;
 import io.github.majusko.pulsar.error.FailedMessage;
+import io.github.majusko.pulsar.error.exception.ClientInitException;
 import io.github.majusko.pulsar.error.exception.ConsumerInitException;
 import io.github.majusko.pulsar.properties.ConsumerProperties;
 import io.github.majusko.pulsar.utils.SchemaUtils;
@@ -20,6 +22,7 @@ import reactor.core.publisher.Sinks;
 import reactor.util.concurrent.Queues;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -33,6 +36,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
     private final PulsarClient pulsarClient;
     private final ConsumerProperties consumerProperties;
     private final UrlBuildService urlBuildService;
+    private final static SubscriptionType DEFAULT_SUBSCRIPTION_TYPE = SubscriptionType.Exclusive;
 
     private StringValueResolver stringValueResolver;
     private List<Consumer> consumers;
@@ -46,7 +50,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
     }
 
     @EventListener(ApplicationReadyEvent.class)
-    public void init() {
+    public void init() throws ClientInitException {
         consumers = consumerCollector.getConsumers().entrySet().stream()
             .map(holder -> subscribe(holder.getKey(), holder.getValue()))
             .collect(Collectors.toList());
@@ -57,15 +61,14 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
             final String consumerName = stringValueResolver.resolveStringValue(holder.getAnnotation().consumerName());
             final String subscriptionName = stringValueResolver.resolveStringValue(holder.getAnnotation().subscriptionName());
             final String topicName = stringValueResolver.resolveStringValue(holder.getAnnotation().topic());
+            final SubscriptionType subscriptionType = getSubscriptionType(holder);
             final ConsumerBuilder<?> consumerBuilder = pulsarClient
                 .newConsumer(SchemaUtils.getSchema(holder.getAnnotation().serialization(),
                     holder.getAnnotation().clazz()))
-                .consumerName(urlBuildService
-                    .buildPulsarConsumerName(consumerName, generatedConsumerName))
-                .subscriptionName(urlBuildService
-                    .buildPulsarSubscriptionName(subscriptionName, generatedConsumerName))
+                .consumerName(urlBuildService.buildPulsarConsumerName(consumerName, generatedConsumerName))
+                .subscriptionName(urlBuildService.buildPulsarSubscriptionName(subscriptionName, generatedConsumerName))
                 .topic(urlBuildService.buildTopicUrl(topicName))
-                .subscriptionType(holder.getAnnotation().subscriptionType())
+                .subscriptionType(subscriptionType)
                 .messageListener((consumer, msg) -> {
                     try {
                         final Method method = holder.getHandler();
@@ -91,9 +94,25 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
             buildDeadLetterPolicy(holder, consumerBuilder);
 
             return consumerBuilder.subscribe();
-        } catch (PulsarClientException e) {
+        } catch (PulsarClientException | ClientInitException e) {
             throw new ConsumerInitException("Failed to init consumer.", e);
         }
+    }
+
+    private SubscriptionType getSubscriptionType(ConsumerHolder holder) throws ClientInitException {
+        SubscriptionType subscriptionType = Arrays.stream(holder.getAnnotation().subscriptionType()).findFirst().orElse(null);
+
+        if (subscriptionType == null && Strings.isNullOrEmpty(consumerProperties.getSubscriptionType())) {
+            subscriptionType = DEFAULT_SUBSCRIPTION_TYPE;
+        } else if (subscriptionType == null && !Strings.isNullOrEmpty(consumerProperties.getSubscriptionType())) {
+            try {
+                subscriptionType = SubscriptionType.valueOf(consumerProperties.getSubscriptionType());
+            } catch (IllegalArgumentException exception) {
+                throw new ClientInitException("There was unknown SubscriptionType.", exception);
+            }
+        }
+
+        return subscriptionType;
     }
 
     public void buildDeadLetterPolicy(ConsumerHolder holder, ConsumerBuilder<?> consumerBuilder) {

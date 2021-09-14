@@ -17,7 +17,23 @@ public @interface PulsarConsumer {
 
     Serialization serialization() default Serialization.JSON;
 
-    SubscriptionType subscriptionType() default SubscriptionType.Exclusive;
+    /**
+     * Type of subscription.
+     *
+     * Shared - This will allow you to have multiple consumers/instances of the application in a cluster with same subscription
+     * name and guarantee that the message is read only by one consumer.
+     *
+     * Exclusive - message will be delivered to every subscription name only once but won't allow to instantiate multiple
+     * instances or consumers of the same subscription name. With a default configuration you don't need to worry about horizontal
+     * scaling because message will be delivered to each pod in a cluster since in case of exclusive subscription
+     * the name is unique per instance and can be nicely used to update state of each pod in case your service
+     * is stateful (For example - you need to update in-memory cached configuration for each instance of authorization microservice).
+     *
+     * By default the type is `Exclusive` but you can also override the default in `application.properties`.
+     * This can be handy in case you are using `Shared` subscription in your application all the time and you
+     * don't want to override this value every time you use `@PulsarConsumer`.
+     */
+    SubscriptionType[] subscriptionType() default {};
 
     /**
      * (Optional) Consumer names are auto-generated but in case you wish to use your custom consumer names,
