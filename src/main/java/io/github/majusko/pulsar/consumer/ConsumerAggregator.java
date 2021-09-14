@@ -51,18 +51,19 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
             .collect(Collectors.toList());
     }
 
-    private Consumer<?> subscribe(String consumerName, ConsumerHolder holder) {
+    private Consumer<?> subscribe(String generatedConsumerName, ConsumerHolder holder) {
         try {
+            final String consumerName = stringValueResolver.resolveStringValue(holder.getAnnotation().consumerName());
+            final String subscriptionName = stringValueResolver.resolveStringValue(holder.getAnnotation().subscriptionName());
+            final String topicName = stringValueResolver.resolveStringValue(holder.getAnnotation().topic());
             final ConsumerBuilder<?> consumerBuilder = pulsarClient
                 .newConsumer(SchemaUtils.getSchema(holder.getAnnotation().serialization(),
                     holder.getAnnotation().clazz()))
                 .consumerName(urlBuildService
-                    .buildPulsarConsumerName(holder.getAnnotation().consumerName(), consumerName))
+                    .buildPulsarConsumerName(consumerName, generatedConsumerName))
                 .subscriptionName(urlBuildService
-                    .buildPulsarSubscriptionName(holder.getAnnotation().subscriptionName(), consumerName))
-                .topic(urlBuildService
-                    .buildTopicUrl(stringValueResolver
-                        .resolveStringValue(holder.getAnnotation().topic())))
+                    .buildPulsarSubscriptionName(subscriptionName, generatedConsumerName))
+                .topic(urlBuildService.buildTopicUrl(topicName))
                 .subscriptionType(holder.getAnnotation().subscriptionType())
                 .messageListener((consumer, msg) -> {
                     try {

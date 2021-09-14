@@ -27,6 +27,7 @@ public class TestProducerConfiguration {
             .addProducer("topic-proto", ProtoMsg.class, Serialization.PROTOBUF)
             .addProducer("topic-deliver-to-dead-letter", MyMsg.class)
             .addProducer("${my.custom.topic.name}", MyMsg.class)
+            .addProducer(TestConsumers.CUSTOM_SUB_AND_CONSUMER_TOPIC, MyMsg.class)
             .addProducer(TestConsumers.CUSTOM_CONSUMER_TOPIC, MyMsg.class);
     }
 }

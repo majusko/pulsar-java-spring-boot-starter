@@ -207,17 +207,39 @@ class MyConsumer {
 }
 ```
 
-#### 1. SpeL support
+#### 2. Overriding default consumer and subscription names
+By default, all subscription and consumer names are auto-generated, and you don't need to worry about configuring them for most of the use cases.
+However, you are able to override the automatic generation of the subscription and consumer names if your use case requires special configurations.
 
-You can configure topic names in `application.properties`
+```java
+@PulsarConsumer(
+        topic = "my-topic",
+        clazz = MyMsg.class,
+        consumerName = "my-consumer",
+        subscriptionName = "my-subscription")
+```
+
+#### 3. SpeL support
+
+You can configure a **topic, consumer and subscription** names in `application.properties`
 
 ```properties
 my.custom.topic.name=foo
+my.custom.consumer.name=foo
+my.custom.subscription.name=foo
 ```
 
 ```java
-@PulsarConsumer(topic = "${my.custom.topic.name}", clazz = MyMsg.class)
-public void consume(MyMsg myMsg) {
+@Service
+class MyConsumer {
+    
+    @PulsarConsumer(
+        topic = "${my.custom.topic.name}",
+        clazz = MyMsg.class,
+        consumerName = "${my.custom.consumer.name}",
+        subscriptionName = "${my.custom.subscription.name}")
+    public void consume(MyMsg myMsg) {
+    }
 }
 ```
 
