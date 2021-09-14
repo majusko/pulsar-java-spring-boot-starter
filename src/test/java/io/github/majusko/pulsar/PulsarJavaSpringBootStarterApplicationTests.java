@@ -13,6 +13,10 @@ import io.github.majusko.pulsar.utils.UrlBuildService;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.PulsarClientException;
+import org.apache.pulsar.client.api.SubscriptionType;
+import org.apache.pulsar.client.impl.ConsumerBase;
+import org.apache.pulsar.client.impl.ConsumerImpl;
+import org.apache.pulsar.client.impl.conf.ConsumerConfigurationData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +32,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import reactor.core.Disposable;
 
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
@@ -133,7 +138,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void testConsumerRegistration1() throws Exception {
         final List<Consumer> consumers = consumerAggregator.getConsumers();
 
-        Assertions.assertEquals(14, consumers.size());
+        Assertions.assertEquals(16, consumers.size());
 
         final Consumer<?> consumer =
             consumers.stream().filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl("topic-one"))).findFirst().orElseThrow(Exception::new);
@@ -164,7 +169,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         final Map<String, ImmutablePair<Class<?>, Serialization>> topics = producerFactory.getTopics();
 
-        Assertions.assertEquals(14, topics.size());
+        Assertions.assertEquals(16, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
@@ -258,5 +263,45 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         producer.send(TestConsumers.CUSTOM_SUB_AND_CONSUMER_TOPIC, new MyMsg(VALIDATION_STRING));
         await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.subscribeToCustomSpElConsumerAndSubConfig.get());
+    }
+
+    @Test
+    void sharedSubscriptionOverride() throws Exception {
+        final ConsumerBase<?> consumer = (ConsumerBase<?>) consumerAggregator.getConsumers().stream()
+            .filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl(TestConsumers.SHARED_SUB_TEST)))
+            .findFirst()
+            .orElseThrow(() -> new Exception("Missing tested consumer."));
+
+        final Field f = ConsumerBase.class.getDeclaredField("conf");
+
+        f.setAccessible(true);
+
+        final ConsumerConfigurationData<?> conf = (ConsumerConfigurationData<?>) f.get(consumer);
+
+        Assertions.assertEquals(urlBuildService.buildTopicUrl(TestConsumers.SHARED_SUB_TEST), consumer.getTopic());
+        Assertions.assertEquals(SubscriptionType.Shared, conf.getSubscriptionType());
+
+        producer.send(TestConsumers.SHARED_SUB_TEST, new MyMsg(VALIDATION_STRING));
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.subscribeToSharedTopicSubscription.get());
+    }
+
+    @Test
+    void exclusiveSubscriptionOverride() throws Exception {
+        final ConsumerBase<?> consumer = (ConsumerBase<?>) consumerAggregator.getConsumers().stream()
+            .filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl(TestConsumers.EXCLUSIVE_SUB_TEST)))
+            .findFirst()
+            .orElseThrow(() -> new Exception("Missing tested consumer."));
+
+        final Field f = ConsumerBase.class.getDeclaredField("conf");
+
+        f.setAccessible(true);
+
+        final ConsumerConfigurationData<?> conf = (ConsumerConfigurationData<?>) f.get(consumer);
+
+        Assertions.assertEquals(urlBuildService.buildTopicUrl(TestConsumers.EXCLUSIVE_SUB_TEST), consumer.getTopic());
+        Assertions.assertEquals(SubscriptionType.Exclusive, conf.getSubscriptionType());
+
+        producer.send(TestConsumers.EXCLUSIVE_SUB_TEST, new MyMsg(VALIDATION_STRING));
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.subscribeToSharedTopicSubscription.get());
     }
 }

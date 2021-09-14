@@ -28,6 +28,8 @@ public class TestProducerConfiguration {
             .addProducer("topic-deliver-to-dead-letter", MyMsg.class)
             .addProducer("${my.custom.topic.name}", MyMsg.class)
             .addProducer(TestConsumers.CUSTOM_SUB_AND_CONSUMER_TOPIC, MyMsg.class)
+            .addProducer(TestConsumers.SHARED_SUB_TEST, MyMsg.class)
+            .addProducer(TestConsumers.EXCLUSIVE_SUB_TEST, MyMsg.class)
             .addProducer(TestConsumers.CUSTOM_CONSUMER_TOPIC, MyMsg.class);
     }
 }
