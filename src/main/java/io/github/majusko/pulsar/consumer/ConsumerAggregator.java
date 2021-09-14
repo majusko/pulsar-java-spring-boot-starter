@@ -9,15 +9,16 @@ import io.github.majusko.pulsar.properties.ConsumerProperties;
 import io.github.majusko.pulsar.utils.SchemaUtils;
 import io.github.majusko.pulsar.utils.UrlBuildService;
 import org.apache.pulsar.client.api.*;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringValueResolver;
 import reactor.core.Disposable;
 import reactor.core.publisher.Sinks;
 import reactor.util.concurrent.Queues;
 
-import javax.annotation.PostConstruct;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -44,8 +45,8 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
         this.urlBuildService = urlBuildService;
     }
 
-    @PostConstruct
-    private void init() {
+    @EventListener(ApplicationReadyEvent.class)
+    public void init() {
         consumers = consumerCollector.getConsumers().entrySet().stream()
             .map(holder -> subscribe(holder.getKey(), holder.getValue()))
             .collect(Collectors.toList());
