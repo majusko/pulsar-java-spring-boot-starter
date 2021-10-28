@@ -32,6 +32,8 @@ public class MyMsg {
         this.data = data;
     }
 
+    public MyMsg() {}
+
     public String getData() {
         return data;
     }
@@ -240,6 +242,28 @@ class MyConsumer {
         consumerName = "${my.custom.consumer.name}",
         subscriptionName = "${my.custom.subscription.name}")
     public void consume(MyMsg myMsg) {
+    }
+}
+```
+
+#### 4. Error handling
+
+All failed messages should be handled with Pulsar features like for example "Dead Letter Policies".
+However, for debug, development and logging purposes you may want to subscribe to all error messages
+in your application as well. You just need to autowire `ConsumerAggregator` and subscribe to `onError` method.
+
+```java
+@Service
+public class PulsarErrorHandler {
+
+    @Autowired
+    private ConsumerAggregator aggregator;
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void pulsarErrorHandler() {
+        aggregator.onError(failedMessage ->
+                failedMessage.getException()
+                        .printStackTrace());
     }
 }
 ```
