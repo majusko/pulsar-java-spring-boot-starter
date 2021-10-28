@@ -50,7 +50,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
     }
 
     @EventListener(ApplicationReadyEvent.class)
-    public void init() throws ClientInitException {
+    public void init() {
         consumers = consumerCollector.getConsumers().entrySet().stream()
             .map(holder -> subscribe(holder.getKey(), holder.getValue()))
             .collect(Collectors.toList());
@@ -100,9 +100,8 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
     }
 
     private SubscriptionType getSubscriptionType(ConsumerHolder holder) throws ClientInitException {
-        SubscriptionType subscriptionType = Arrays.stream(holder.getAnnotation().subscriptionType()).findFirst().orElse(null);
-
-        String aa = consumerProperties.getSubscriptionType();
+        SubscriptionType subscriptionType = Arrays.stream(holder.getAnnotation().subscriptionType())
+                .findFirst().orElse(null);
 
         if (subscriptionType == null && Strings.isNullOrEmpty(consumerProperties.getSubscriptionType())) {
             subscriptionType = DEFAULT_SUBSCRIPTION_TYPE;
