@@ -26,7 +26,7 @@ Simple steps to start using the library.
 
 public class MyMsg {
 
-    private final String data;
+    private String data;
     
     public MyMsg(String data) {
         this.data = data;
