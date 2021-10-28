@@ -31,6 +31,9 @@ public class PulsarProperties {
     private String tlsAuthCertFilePath = null;
     private String tlsAuthKeyFilePath = null;
     private String tokenAuthValue = null;
+    private String oauth2IssuerUrl = null;
+    private String oauth2CredentialsUrl = null;
+    private String oauth2Audience = null;
 
     public String getServiceUrl() {
         return serviceUrl;
@@ -222,5 +225,29 @@ public class PulsarProperties {
 
     public void setTokenAuthValue(String tokenAuthValue) {
         this.tokenAuthValue = tokenAuthValue;
+    }
+
+    public String getOauth2IssuerUrl() {
+        return oauth2IssuerUrl;
+    }
+
+    public void setOauth2IssuerUrl(String oauth2IssuerUrl) {
+        this.oauth2IssuerUrl = oauth2IssuerUrl;
+    }
+
+    public String getOauth2CredentialsUrl() {
+        return oauth2CredentialsUrl;
+    }
+
+    public void setOauth2CredentialsUrl(String oauth2CredentialsUrl) {
+        this.oauth2CredentialsUrl = oauth2CredentialsUrl;
+    }
+
+    public String getOauth2Audience() {
+        return oauth2Audience;
+    }
+
+    public void setOauth2Audience(String oauth2Audience) {
+        this.oauth2Audience = oauth2Audience;
     }
 }
