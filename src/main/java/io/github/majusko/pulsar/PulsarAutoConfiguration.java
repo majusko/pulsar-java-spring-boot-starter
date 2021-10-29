@@ -8,12 +8,15 @@ import org.apache.pulsar.client.api.AuthenticationFactory;
 import org.apache.pulsar.client.api.ClientBuilder;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
+import org.apache.pulsar.client.impl.auth.oauth2.AuthenticationFactoryOAuth2;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
@@ -29,7 +32,7 @@ public class PulsarAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public PulsarClient pulsarClient() throws PulsarClientException, ClientInitException {
+    public PulsarClient pulsarClient() throws PulsarClientException, ClientInitException, MalformedURLException {
         if (!Strings.isNullOrEmpty(pulsarProperties.getTlsAuthCertFilePath()) &&
             !Strings.isNullOrEmpty(pulsarProperties.getTlsAuthKeyFilePath()) &&
             !Strings.isNullOrEmpty(pulsarProperties.getTokenAuthValue())
@@ -64,6 +67,16 @@ public class PulsarAutoConfiguration {
         if (!Strings.isNullOrEmpty(pulsarProperties.getTokenAuthValue())) {
             pulsarClientBuilder.authentication(AuthenticationFactory
                 .token(pulsarProperties.getTokenAuthValue()));
+        }
+
+        if (!Strings.isNullOrEmpty(pulsarProperties.getOauth2Audience()) &&
+            !Strings.isNullOrEmpty(pulsarProperties.getOauth2IssuerUrl()) &&
+            !Strings.isNullOrEmpty(pulsarProperties.getOauth2CredentialsUrl())) {
+            final URL issuerUrl = new URL(pulsarProperties.getOauth2IssuerUrl());
+            final URL credentialsUrl = new URL(pulsarProperties.getOauth2CredentialsUrl());
+
+            pulsarClientBuilder.authentication(AuthenticationFactoryOAuth2
+                .clientCredentials(issuerUrl, credentialsUrl, pulsarProperties.getOauth2Audience()));
         }
 
         return pulsarClientBuilder.build();

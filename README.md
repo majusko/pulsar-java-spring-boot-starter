@@ -144,7 +144,7 @@ pulsar.tlsTrustStoreType=JKS
 pulsar.useKeyStoreTls=false
 ```
 
-Pulsar client authentication
+Pulsar client authentication (Only one of the options can be used)
 ```properties
 # TLS
 pulsar.tls-auth-cert-file-path=/etc/pulsar/tls/cert.cert.pem
@@ -152,11 +152,17 @@ pulsar.tls-auth-key-file-path=/etc/pulsar/tls/key.key-pk8.pem
 
 #Token based
 pulsar.token-auth-value=43th4398gh340gf34gj349gh304ghryj34fh
+
+#OAuth2 based
+pulsar.oauth2-issuer-url=https://accounts.google.com
+pulsar.oauth2-credentials-url=file:/path/to/file
+pulsar.oauth2-audience=https://broker.example.com
 ```
 
-### Properties explained:
+## Properties explained:
 
-#### PulsarClient
+### PulsarClient
+
 - `pulsar.service-url` - URL used to connect to pulsar cluster. Use `pulsar+ssl://` URL to enable TLS configuration. Examples: `pulsar://my-broker:6650` for regular endpoint `pulsar+ssl://my-broker:6651` for TLS encrypted endpoint
 - `pulsar.io-threads` - Number of threads to be used for handling connections to brokers.
 - `pulsar.listener-threads` - Set the number of threads to be used for message listeners/subscribers.
@@ -182,13 +188,27 @@ pulsar.token-auth-value=43th4398gh340gf34gj349gh304ghryj34fh
 - `pulsar.allowTlsInsecureConnection` - Whether the Pulsar client accepts untrusted TLS certificate from broker
 - `pulsar.enableTlsHostnameVerification` - Whether to enable TLS hostname verification
 
-**Pulsar client authentication**
+### PulsarClient Authentication properties (optional)
+
+Only one of the following authentication methods can be used.
+
+**Pulsar TLS client authentication**
 
 - `pulsar.tls-auth-cert-file-path` - the path to the TLS client public key
 - `pulsar.tls-auth-key-file-path` - the path to the TLS client private key
+
+**Pulsar token based client authentication**
+
 - `pulsar.token-auth-value` - the client auth token
 
-#### Consumer
+**Pulsar OAuth2 based client authentication**
+
+- `pulsar.oauth2-issuer-url` - URL of the authentication provider which allows the Pulsar client to obtain an access token.
+- `pulsar.oauth2-credentials-url` - URL to a JSON credentials file. Support the following pattern formats: `file:///path/to/file`, `file:/path/to/file` or `data:application/json;base64,<base64-encoded value>`
+- `pulsar.oauth2-audience` - An OAuth 2.0 "resource server" identifier for the Pulsar cluster.
+
+### PulsarConsumer default configurations
+
 - `pulsar.consumer.default.dead-letter-policy-max-redeliver-count` - How many times should pulsar try to retry sending the message to consumer.
 - `pulsar.consumer.default.ack-timeout-ms` - How soon should be the message acked and how soon will dead letter mechanism try to retry to send the message.
 - `pulsar.consumer.default.subscription-type` - By default all subscriptions are `Exclusive`. You can override this default value here globally or set individualy in each `@PulsarConsumer` annotation.

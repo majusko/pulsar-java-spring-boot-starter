@@ -1,17 +1,9 @@
 package io.github.majusko.pulsar;
 
-import io.github.majusko.pulsar.collector.ConsumerCollector;
-import io.github.majusko.pulsar.collector.ConsumerHolder;
-import io.github.majusko.pulsar.constant.Serialization;
 import io.github.majusko.pulsar.consumer.ConsumerAggregator;
-import io.github.majusko.pulsar.msg.AvroMsg;
 import io.github.majusko.pulsar.msg.MyMsg;
-import io.github.majusko.pulsar.msg.ProtoMsg;
-import io.github.majusko.pulsar.producer.ProducerFactory;
 import io.github.majusko.pulsar.producer.PulsarTemplate;
 import io.github.majusko.pulsar.utils.UrlBuildService;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.SubscriptionType;
 import org.apache.pulsar.client.impl.ConsumerBase;
@@ -19,7 +11,6 @@ import org.apache.pulsar.client.impl.conf.ConsumerConfigurationData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
@@ -29,14 +20,9 @@ import org.testcontainers.containers.PulsarContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
-import reactor.core.Disposable;
 
 import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import static org.awaitility.Awaitility.await;
 
