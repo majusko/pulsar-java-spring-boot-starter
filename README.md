@@ -121,6 +121,7 @@ pulsar.max-backoff-interval-sec=10
 pulsar.consumer-name-delimiter=
 pulsar.namespace=default
 pulsar.tenant=public
+pulsar.auto-start=true
 
 #Consumer
 pulsar.consumer.default.dead-letter-policy-max-redeliver-count=-1
@@ -175,6 +176,7 @@ pulsar.oauth2-audience=https://broker.example.com
 - `pulsar.consumer-name-delimiter` - Consumer names are connection of bean name and method with a delimiter. By default, there is no delimiter and words are connected together.
 - `pulsar.namespace` - Namespace separation. For example: app1/app2 OR dev/staging/prod. More in [Namespaces docs](https://pulsar.apache.org/docs/en/concepts-messaging/#namespaces).
 - `pulsar.tenant` - Pulsar multi-tenancy support. More in [Multi Tenancy docs](https://pulsar.apache.org/docs/en/concepts-multi-tenancy/).
+- `pulsar.auto-start` - Whether the subscriptions should start on application startup. Useful in case you wish to not subscribe on some environments (dev,PoC,...).
 
 **Change only in case TLS is enabled** (By using `pulsar+ssl://` as `pulsar.service-url` value prefix.)
 
