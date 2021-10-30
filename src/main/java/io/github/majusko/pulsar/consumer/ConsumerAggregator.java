@@ -8,6 +8,7 @@ import io.github.majusko.pulsar.error.FailedMessage;
 import io.github.majusko.pulsar.error.exception.ClientInitException;
 import io.github.majusko.pulsar.error.exception.ConsumerInitException;
 import io.github.majusko.pulsar.properties.ConsumerProperties;
+import io.github.majusko.pulsar.properties.PulsarProperties;
 import io.github.majusko.pulsar.utils.SchemaUtils;
 import io.github.majusko.pulsar.utils.UrlBuildService;
 import org.apache.pulsar.client.api.*;
@@ -35,6 +36,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
     private final ConsumerCollector consumerCollector;
     private final PulsarClient pulsarClient;
     private final ConsumerProperties consumerProperties;
+    private final PulsarProperties pulsarProperties;
     private final UrlBuildService urlBuildService;
     private final static SubscriptionType DEFAULT_SUBSCRIPTION_TYPE = SubscriptionType.Exclusive;
 
@@ -42,18 +44,22 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
     private List<Consumer> consumers;
 
     public ConsumerAggregator(ConsumerCollector consumerCollector, PulsarClient pulsarClient,
-                              ConsumerProperties consumerProperties, UrlBuildService urlBuildService) {
+                              ConsumerProperties consumerProperties, PulsarProperties pulsarProperties, UrlBuildService urlBuildService) {
         this.consumerCollector = consumerCollector;
         this.pulsarClient = pulsarClient;
         this.consumerProperties = consumerProperties;
+        this.pulsarProperties = pulsarProperties;
         this.urlBuildService = urlBuildService;
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void init() {
-        consumers = consumerCollector.getConsumers().entrySet().stream()
-            .map(holder -> subscribe(holder.getKey(), holder.getValue()))
-            .collect(Collectors.toList());
+        if(pulsarProperties.isAutoStart()) {
+            consumers = consumerCollector.getConsumers().entrySet().stream()
+                .filter(holder -> holder.getValue().getAnnotation().autoStart())
+                .map(holder -> subscribe(holder.getKey(), holder.getValue()))
+                .collect(Collectors.toList());
+        }
     }
 
     private Consumer<?> subscribe(String generatedConsumerName, ConsumerHolder holder) {

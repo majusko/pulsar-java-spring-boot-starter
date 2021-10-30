@@ -57,4 +57,11 @@ public @interface PulsarConsumer {
      * Name of the dead topic where the failing messages will be sent.
      */
     String deadLetterTopic() default "";
+
+    /**
+     * If value is set to true, the consumer will autostart on application startup automatically.
+     * When the value is set to false, consumer will not subscribe to the topic.
+     * By default, the value is `true`
+     */
+    boolean autoStart() default true;
 }
