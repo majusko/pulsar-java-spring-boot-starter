@@ -11,6 +11,7 @@ import io.github.majusko.pulsar.producer.ProducerFactory;
 import io.github.majusko.pulsar.producer.PulsarTemplate;
 import io.github.majusko.pulsar.reactor.FluxConsumer;
 import io.github.majusko.pulsar.reactor.FluxConsumerFactory;
+import io.github.majusko.pulsar.reactor.FluxConsumerHolder;
 import io.github.majusko.pulsar.utils.UrlBuildService;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.pulsar.client.api.Consumer;
@@ -83,6 +84,9 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
     @Autowired
     private FluxConsumer<MyMsg> myTestFluxConsumer;
+
+    @Autowired
+    private FluxConsumer<FluxConsumerHolder> robustFluxConsumer;
 
     @Autowired
     private FluxConsumerFactory fluxConsumerFactory;
@@ -317,7 +321,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
     void testFluxConsumer() throws PulsarClientException {
         final AtomicBoolean received = new AtomicBoolean(false);
 
-        myTestFluxConsumer.asFlux()
+        myTestFluxConsumer.asSimpleFlux()
             .doOnError(error -> System.out.println(error.getMessage()))
             .subscribe(msg -> {
                 System.out.println(msg.getData());
@@ -325,6 +329,31 @@ class PulsarJavaSpringBootStarterApplicationTests {
             });
 
         producer.send(TestFluxConsumersConfiguration.BASIC_FLUX_TOPIC_TEST, new MyMsg("my test flux subscription"));
+
+        await().atMost(Duration.ofSeconds(10)).until(received::get);
+    }
+
+    @Test
+    void testRobustFluxConsumer() throws PulsarClientException {
+        final AtomicBoolean received = new AtomicBoolean(false);
+
+        robustFluxConsumer.asFlux()
+            .doOnError(error -> System.out.println(error.getMessage()))
+            .subscribe(msg -> {
+                try {
+                    final MyMsg myMsg = (MyMsg) msg.getMessage().getValue();
+
+                    System.out.println(myMsg.getData());
+
+                    msg.getConsumer().acknowledge(msg.getMessage());
+                    received.set(true);
+                } catch (PulsarClientException e) {
+                    msg.getConsumer().negativeAcknowledge(msg.getMessage());
+                    e.printStackTrace();
+                }
+            });
+
+        producer.send(TestFluxConsumersConfiguration.ROBUST_FLUX_TOPIC_TEST, new MyMsg("my test flux subscription"));
 
         await().atMost(Duration.ofSeconds(10)).until(received::get);
     }

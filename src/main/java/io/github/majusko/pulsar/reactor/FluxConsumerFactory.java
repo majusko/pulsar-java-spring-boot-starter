@@ -35,11 +35,20 @@ public class FluxConsumerFactory {
             .subscriptionType(subscriptionType)
             .messageListener((consumer, msg) -> {
                 try {
-                    fluxConsumer.emit((T) msg.getValue());
-                    consumer.acknowledge(msg);
+                    if(fluxConsumer.isSimple()) {
+                        fluxConsumer.simpleEmit((T) msg.getValue());
+                        consumer.acknowledge(msg);
+                    } else {
+                        fluxConsumer.emit(new FluxConsumerHolder(consumer, msg));
+                    }
                 } catch (Exception e) {
                     consumer.negativeAcknowledge(msg);
-                    fluxConsumer.emitError(e);
+
+                    if(fluxConsumer.isSimple()) {
+                        fluxConsumer.simpleEmitError(e);
+                    } else {
+                        fluxConsumer.emitError(e);
+                    }
                 }
             });
 

@@ -9,7 +9,8 @@ import reactor.core.publisher.Sinks;
 import reactor.util.concurrent.Queues;
 
 public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
-    private final Sinks.Many<T> sink = Sinks.many().multicast().onBackpressureBuffer(Queues.SMALL_BUFFER_SIZE, false);
+    private final Sinks.Many<T> simpleSink = Sinks.many().multicast().onBackpressureBuffer(Queues.SMALL_BUFFER_SIZE, false);
+    private final Sinks.Many<FluxConsumerHolder> robustSink = Sinks.many().multicast().onBackpressureBuffer(Queues.SMALL_BUFFER_SIZE, false);
 
     private final String topic;
 
@@ -27,6 +28,9 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
 
     private final String deadLetterTopic;
 
+    private final boolean simple;
+
+    // TODO add buffer size configuration
     private PulsarFluxConsumer(
         String topic,
         Class<?> clazz,
@@ -35,7 +39,8 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
         String consumerName,
         String subscriptionName,
         int maxRedeliverCount,
-        String deadLetterTopic
+        String deadLetterTopic,
+        boolean simple
     ) {
         this.topic = topic;
         this.clazz = clazz;
@@ -45,6 +50,7 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
         this.subscriptionName = subscriptionName;
         this.maxRedeliverCount = maxRedeliverCount;
         this.deadLetterTopic = deadLetterTopic;
+        this.simple = simple;
     }
 
     public String getTopic() {
@@ -79,16 +85,32 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
         return deadLetterTopic;
     }
 
-    public Sinks.EmitResult emit(T msg) {
-        return sink.tryEmitNext(msg);
+    public boolean isSimple() {
+        return simple;
+    }
+
+    public Sinks.EmitResult simpleEmit(T msg) {
+        return simpleSink.tryEmitNext(msg);
+    }
+
+    public Sinks.EmitResult simpleEmitError(Throwable error) {
+        return simpleSink.tryEmitError(error);
+    }
+
+    public Flux<T> asSimpleFlux() {
+        return simpleSink.asFlux();
+    }
+
+    public Flux<FluxConsumerHolder> asFlux() {
+        return robustSink.asFlux();
+    }
+
+    public Sinks.EmitResult emit(FluxConsumerHolder msg) {
+        return robustSink.tryEmitNext(msg);
     }
 
     public Sinks.EmitResult emitError(Throwable error) {
-        return sink.tryEmitError(error);
-    }
-
-    public Flux<T> asFlux() {
-        return sink.asFlux();
+        return robustSink.tryEmitError(error);
     }
 
     public static FluxConsumerBuilder builder() {
@@ -141,6 +163,12 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
          */
         private String deadLetterTopic = "";
 
+        /**
+         * Define rather you wish to use simple subscription or you wish to handle negative acknowledges.
+         * By default, the simple subscription is used.
+         */
+        private boolean simple = true;
+
         public FluxConsumerBuilder setTopic(String topic) {
             this.topic = topic;
             return this;
@@ -181,10 +209,15 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
             return this;
         }
 
+        public FluxConsumerBuilder setSimple(boolean simple) {
+            this.simple = simple;
+            return this;
+        }
+
         public <T> PulsarFluxConsumer<T> build() throws ClientInitException {
             validateBuilder();
 
-            return new PulsarFluxConsumer<>(topic, clazz, serialization, subscriptionType, consumerName, subscriptionName, maxRedeliverCount, deadLetterTopic);
+            return new PulsarFluxConsumer<>(topic, clazz, serialization, subscriptionType, consumerName, subscriptionName, maxRedeliverCount, deadLetterTopic, simple);
         }
 
         private void validateBuilder() throws ClientInitException {
