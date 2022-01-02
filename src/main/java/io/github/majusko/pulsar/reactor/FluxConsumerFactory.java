@@ -6,6 +6,7 @@ import io.github.majusko.pulsar.utils.SchemaUtils;
 import io.github.majusko.pulsar.utils.UrlBuildService;
 import org.apache.pulsar.client.api.ConsumerBuilder;
 import org.apache.pulsar.client.api.PulsarClient;
+import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.SubscriptionType;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +24,7 @@ public class FluxConsumerFactory {
         this.consumerProperties = consumerProperties;
     }
 
-    public <T> FluxConsumer<T> newConsumer(PulsarFluxConsumer<T> fluxConsumer) throws ClientInitException {
+    public <T> FluxConsumer<T> newConsumer(PulsarFluxConsumer<T> fluxConsumer) throws ClientInitException, PulsarClientException {
         final SubscriptionType subscriptionType = urlBuildService.getSubscriptionType(fluxConsumer.getSubscriptionType());
         final ConsumerBuilder<?> consumerBuilder = pulsarClient
             .newConsumer(SchemaUtils.getSchema(fluxConsumer.getSerialization(), fluxConsumer.getClazz()))
@@ -34,7 +35,6 @@ public class FluxConsumerFactory {
             .messageListener((consumer, msg) -> {
                 try {
                     fluxConsumer.emit((T) msg.getValue());
-
                     consumer.acknowledge(msg);
                 } catch (Exception e) {
                     consumer.negativeAcknowledge(msg);
@@ -47,6 +47,8 @@ public class FluxConsumerFactory {
         }
 
         urlBuildService.buildDeadLetterPolicy(fluxConsumer.getMaxRedeliverCount(), fluxConsumer.getDeadLetterTopic(), consumerBuilder);
+
+        consumerBuilder.subscribe();
 
         return fluxConsumer;
     }

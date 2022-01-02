@@ -9,13 +9,13 @@ import io.github.majusko.pulsar.msg.MyMsg;
 import io.github.majusko.pulsar.msg.ProtoMsg;
 import io.github.majusko.pulsar.producer.ProducerFactory;
 import io.github.majusko.pulsar.producer.PulsarTemplate;
+import io.github.majusko.pulsar.reactor.FluxConsumer;
 import io.github.majusko.pulsar.utils.UrlBuildService;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.SubscriptionType;
 import org.apache.pulsar.client.impl.ConsumerBase;
-import org.apache.pulsar.client.impl.ConsumerImpl;
 import org.apache.pulsar.client.impl.conf.ConsumerConfigurationData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -43,7 +43,7 @@ import static org.awaitility.Awaitility.await;
 
 @ActiveProfiles("test")
 @SpringBootTest
-@Import({TestProducerConfiguration.class, TestConsumers.class})
+@Import({TestProducerConfiguration.class, TestConsumers.class, TestFluxConsumersConfiguration.class})
 @Testcontainers
 class PulsarJavaSpringBootStarterApplicationTests {
 
@@ -79,6 +79,9 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
     @Autowired
     private UrlBuildService urlBuildService;
+
+    @Autowired
+    private FluxConsumer<MyMsg> myTestFluxConsumer;
 
     @Value("${my.custom.subscription.name}")
     private String customSubscriptionName;
@@ -303,5 +306,21 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         producer.send(TestConsumers.EXCLUSIVE_SUB_TEST, new MyMsg(VALIDATION_STRING));
         await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.subscribeToSharedTopicSubscription.get());
+    }
+
+    @Test
+    void testFluxConsumer() throws PulsarClientException {
+        final AtomicBoolean received = new AtomicBoolean(false);
+
+        myTestFluxConsumer.asFlux()
+            .doOnError(error -> System.out.println(error.getMessage()))
+            .subscribe(msg -> {
+                System.out.println(msg.getData());
+                received.set(true);
+            });
+
+        producer.send(TestFluxConsumersConfiguration.BASIC_FLUX_TOPIC_TEST, new MyMsg("my test flux subscription"));
+
+        await().atMost(Duration.ofSeconds(10)).until(received::get);
     }
 }

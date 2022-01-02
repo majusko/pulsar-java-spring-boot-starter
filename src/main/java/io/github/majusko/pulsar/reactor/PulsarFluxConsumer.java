@@ -91,11 +91,11 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
         return sink.asFlux();
     }
 
-    public static FluxConsumerBuilder<?> builder() {
-        return new FluxConsumerBuilder<>();
+    public static FluxConsumerBuilder builder() {
+        return new FluxConsumerBuilder();
     }
 
-    static class FluxConsumerBuilder<T> {
+    public static class FluxConsumerBuilder {
         private String topic;
 
         private Class<?> clazz = byte[].class;
@@ -141,50 +141,50 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
          */
         private String deadLetterTopic = "";
 
-        public FluxConsumerBuilder<T> setTopic(String topic) {
+        public FluxConsumerBuilder setTopic(String topic) {
             this.topic = topic;
             return this;
         }
 
-        public FluxConsumerBuilder<T> setClazz(Class<?> clazz) {
+        public FluxConsumerBuilder setClazz(Class<?> clazz) {
             this.clazz = clazz;
             return this;
         }
 
-        public FluxConsumerBuilder<T> setSerialization(Serialization serialization) {
+        public FluxConsumerBuilder setSerialization(Serialization serialization) {
             this.serialization = serialization;
             return this;
         }
 
-        public FluxConsumerBuilder<T> setSubscriptionType(SubscriptionType subscriptionType) {
+        public FluxConsumerBuilder setSubscriptionType(SubscriptionType subscriptionType) {
             this.subscriptionType = subscriptionType;
             return this;
         }
 
-        public FluxConsumerBuilder<T> setConsumerName(String consumerName) {
+        public FluxConsumerBuilder setConsumerName(String consumerName) {
             this.consumerName = consumerName;
             return this;
         }
 
-        public FluxConsumerBuilder<T> setSubscriptionName(String subscriptionName) {
+        public FluxConsumerBuilder setSubscriptionName(String subscriptionName) {
             this.subscriptionName = subscriptionName;
             return this;
         }
 
-        public FluxConsumerBuilder<T> setMaxRedeliverCount(int maxRedeliverCount) {
+        public FluxConsumerBuilder setMaxRedeliverCount(int maxRedeliverCount) {
             this.maxRedeliverCount = maxRedeliverCount;
             return this;
         }
 
-        public FluxConsumerBuilder<T> setDeadLetterTopic(String deadLetterTopic) {
+        public FluxConsumerBuilder setDeadLetterTopic(String deadLetterTopic) {
             this.deadLetterTopic = deadLetterTopic;
             return this;
         }
 
-        public PulsarFluxConsumer<T> build() throws ClientInitException {
+        public <T> PulsarFluxConsumer<T> build() throws ClientInitException {
             validateBuilder();
 
-            return new PulsarFluxConsumer<T>(topic, clazz, serialization, subscriptionType, consumerName, subscriptionName, maxRedeliverCount, deadLetterTopic);
+            return new PulsarFluxConsumer<>(topic, clazz, serialization, subscriptionType, consumerName, subscriptionName, maxRedeliverCount, deadLetterTopic);
         }
 
         private void validateBuilder() throws ClientInitException {
