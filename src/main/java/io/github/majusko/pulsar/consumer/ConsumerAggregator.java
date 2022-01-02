@@ -61,7 +61,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
             final String consumerName = stringValueResolver.resolveStringValue(holder.getAnnotation().consumerName());
             final String subscriptionName = stringValueResolver.resolveStringValue(holder.getAnnotation().subscriptionName());
             final String topicName = stringValueResolver.resolveStringValue(holder.getAnnotation().topic());
-            final SubscriptionType subscriptionType = getSubscriptionType(holder);
+            final SubscriptionType subscriptionType = urlBuildService.getSubscriptionType(holder);
             final ConsumerBuilder<?> consumerBuilder = pulsarClient
                 .newConsumer(SchemaUtils.getSchema(holder.getAnnotation().serialization(),
                     holder.getAnnotation().clazz()))
@@ -91,50 +91,14 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                 consumerBuilder.ackTimeout(consumerProperties.getAckTimeoutMs(), TimeUnit.MILLISECONDS);
             }
 
-            buildDeadLetterPolicy(holder, consumerBuilder);
+            urlBuildService.buildDeadLetterPolicy(
+                holder.getAnnotation().maxRedeliverCount(),
+                holder.getAnnotation().deadLetterTopic(),
+                consumerBuilder);
 
             return consumerBuilder.subscribe();
         } catch (PulsarClientException | ClientInitException e) {
             throw new ConsumerInitException("Failed to init consumer.", e);
-        }
-    }
-
-    private SubscriptionType getSubscriptionType(ConsumerHolder holder) throws ClientInitException {
-        SubscriptionType subscriptionType = Arrays.stream(holder.getAnnotation().subscriptionType())
-                .findFirst().orElse(null);
-
-        if (subscriptionType == null && Strings.isNullOrEmpty(consumerProperties.getSubscriptionType())) {
-            subscriptionType = DEFAULT_SUBSCRIPTION_TYPE;
-        } else if (subscriptionType == null && !Strings.isNullOrEmpty(consumerProperties.getSubscriptionType())) {
-            try {
-                subscriptionType = SubscriptionType.valueOf(consumerProperties.getSubscriptionType());
-            } catch (IllegalArgumentException exception) {
-                throw new ClientInitException("There was unknown SubscriptionType.", exception);
-            }
-        }
-
-        return subscriptionType;
-    }
-
-    public void buildDeadLetterPolicy(ConsumerHolder holder, ConsumerBuilder<?> consumerBuilder) {
-        DeadLetterPolicy.DeadLetterPolicyBuilder deadLetterBuilder = null;
-
-        if (consumerProperties.getDeadLetterPolicyMaxRedeliverCount() >= 0) {
-            deadLetterBuilder =
-                DeadLetterPolicy.builder().maxRedeliverCount(consumerProperties.getDeadLetterPolicyMaxRedeliverCount());
-        }
-
-        if (holder.getAnnotation().maxRedeliverCount() >= 0) {
-            deadLetterBuilder =
-                DeadLetterPolicy.builder().maxRedeliverCount(holder.getAnnotation().maxRedeliverCount());
-        }
-
-        if (deadLetterBuilder != null && !holder.getAnnotation().deadLetterTopic().isEmpty()) {
-            deadLetterBuilder.deadLetterTopic(urlBuildService.buildTopicUrl(holder.getAnnotation().deadLetterTopic()));
-        }
-
-        if (deadLetterBuilder != null) {
-            consumerBuilder.deadLetterPolicy(deadLetterBuilder.build());
         }
     }
 
