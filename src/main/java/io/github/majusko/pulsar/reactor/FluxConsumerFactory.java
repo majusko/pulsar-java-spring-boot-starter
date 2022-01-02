@@ -4,12 +4,10 @@ import io.github.majusko.pulsar.error.exception.ClientInitException;
 import io.github.majusko.pulsar.properties.ConsumerProperties;
 import io.github.majusko.pulsar.utils.SchemaUtils;
 import io.github.majusko.pulsar.utils.UrlBuildService;
-import org.apache.pulsar.client.api.ConsumerBuilder;
-import org.apache.pulsar.client.api.PulsarClient;
-import org.apache.pulsar.client.api.PulsarClientException;
-import org.apache.pulsar.client.api.SubscriptionType;
+import org.apache.pulsar.client.api.*;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -17,6 +15,8 @@ public class FluxConsumerFactory {
     private final PulsarClient pulsarClient;
     private final UrlBuildService urlBuildService;
     private final ConsumerProperties consumerProperties;
+
+    private List<Consumer> consumers;
 
     public FluxConsumerFactory(PulsarClient pulsarClient, UrlBuildService urlBuildService, ConsumerProperties consumerProperties) {
         this.pulsarClient = pulsarClient;
@@ -48,8 +48,12 @@ public class FluxConsumerFactory {
 
         urlBuildService.buildDeadLetterPolicy(fluxConsumer.getMaxRedeliverCount(), fluxConsumer.getDeadLetterTopic(), consumerBuilder);
 
-        consumerBuilder.subscribe();
+        consumers.add(consumerBuilder.subscribe());
 
         return fluxConsumer;
+    }
+
+    public List<Consumer> getConsumers() {
+        return consumers;
     }
 }

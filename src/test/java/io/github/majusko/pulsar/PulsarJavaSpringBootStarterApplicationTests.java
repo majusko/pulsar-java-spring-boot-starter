@@ -10,6 +10,7 @@ import io.github.majusko.pulsar.msg.ProtoMsg;
 import io.github.majusko.pulsar.producer.ProducerFactory;
 import io.github.majusko.pulsar.producer.PulsarTemplate;
 import io.github.majusko.pulsar.reactor.FluxConsumer;
+import io.github.majusko.pulsar.reactor.FluxConsumerFactory;
 import io.github.majusko.pulsar.utils.UrlBuildService;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.pulsar.client.api.Consumer;
@@ -83,6 +84,9 @@ class PulsarJavaSpringBootStarterApplicationTests {
     @Autowired
     private FluxConsumer<MyMsg> myTestFluxConsumer;
 
+    @Autowired
+    private FluxConsumerFactory fluxConsumerFactory;
+
     @Value("${my.custom.subscription.name}")
     private String customSubscriptionName;
 
@@ -139,12 +143,13 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
     @Test
     void testConsumerRegistration1() throws Exception {
-        final List<Consumer> consumers = consumerAggregator.getConsumers();
+        final List<Consumer> classicConsumers = consumerAggregator.getConsumers();
+        final List<Consumer> fluxConsumers = fluxConsumerFactory.getConsumers();
 
-        Assertions.assertEquals(16, consumers.size());
+        Assertions.assertEquals(17, classicConsumers.size() + fluxConsumers.size());
 
         final Consumer<?> consumer =
-            consumers.stream().filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl("topic-one"))).findFirst().orElseThrow(Exception::new);
+            classicConsumers.stream().filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl("topic-one"))).findFirst().orElseThrow(Exception::new);
 
         Assertions.assertNotNull(consumer);
     }
@@ -172,7 +177,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         final Map<String, ImmutablePair<Class<?>, Serialization>> topics = producerFactory.getTopics();
 
-        Assertions.assertEquals(16, topics.size());
+        Assertions.assertEquals(17, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
