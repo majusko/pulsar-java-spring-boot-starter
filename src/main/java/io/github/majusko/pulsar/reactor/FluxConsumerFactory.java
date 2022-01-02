@@ -7,6 +7,7 @@ import io.github.majusko.pulsar.utils.UrlBuildService;
 import org.apache.pulsar.client.api.*;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -16,7 +17,7 @@ public class FluxConsumerFactory {
     private final UrlBuildService urlBuildService;
     private final ConsumerProperties consumerProperties;
 
-    private List<Consumer> consumers;
+    private List<Consumer> consumers = new ArrayList<>();
 
     public FluxConsumerFactory(PulsarClient pulsarClient, UrlBuildService urlBuildService, ConsumerProperties consumerProperties) {
         this.pulsarClient = pulsarClient;
