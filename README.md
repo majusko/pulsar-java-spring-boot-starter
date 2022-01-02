@@ -322,7 +322,8 @@ public class MyFluxConsumerService {
     
     @Autowired
     private FluxConsumer<MyMsg> myFluxConsumer;
-    
+
+    @EventListener(ApplicationReadyEvent.class)
     public void subscribe() {
         myFluxConsumer
             .asSimpleFlux()
@@ -350,7 +351,8 @@ public class MyFluxConsumerService {
     
     @Autowired
     private FluxConsumer<MyMsg> myFluxConsumer;
-    
+
+    @EventListener(ApplicationReadyEvent.class)
     public void subscribe() {
         myFluxConsumer.asFlux()
             .subscribe(msg -> {
