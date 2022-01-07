@@ -9,13 +9,15 @@ import io.github.majusko.pulsar.msg.MyMsg;
 import io.github.majusko.pulsar.msg.ProtoMsg;
 import io.github.majusko.pulsar.producer.ProducerFactory;
 import io.github.majusko.pulsar.producer.PulsarTemplate;
+import io.github.majusko.pulsar.reactor.FluxConsumer;
+import io.github.majusko.pulsar.reactor.FluxConsumerFactory;
+import io.github.majusko.pulsar.reactor.FluxConsumerHolder;
 import io.github.majusko.pulsar.utils.UrlBuildService;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.SubscriptionType;
 import org.apache.pulsar.client.impl.ConsumerBase;
-import org.apache.pulsar.client.impl.ConsumerImpl;
 import org.apache.pulsar.client.impl.conf.ConsumerConfigurationData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -43,7 +45,7 @@ import static org.awaitility.Awaitility.await;
 
 @ActiveProfiles("test")
 @SpringBootTest
-@Import({TestProducerConfiguration.class, TestConsumers.class})
+@Import({TestProducerConfiguration.class, TestConsumers.class, TestFluxConsumersConfiguration.class})
 @Testcontainers
 class PulsarJavaSpringBootStarterApplicationTests {
 
@@ -79,6 +81,15 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
     @Autowired
     private UrlBuildService urlBuildService;
+
+    @Autowired
+    private FluxConsumer<MyMsg> myTestFluxConsumer;
+
+    @Autowired
+    private FluxConsumer<FluxConsumerHolder> robustFluxConsumer;
+
+    @Autowired
+    private FluxConsumerFactory fluxConsumerFactory;
 
     @Value("${my.custom.subscription.name}")
     private String customSubscriptionName;
@@ -136,12 +147,13 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
     @Test
     void testConsumerRegistration1() throws Exception {
-        final List<Consumer> consumers = consumerAggregator.getConsumers();
+        final List<Consumer> classicConsumers = consumerAggregator.getConsumers();
+        final List<Consumer> fluxConsumers = fluxConsumerFactory.getConsumers();
 
-        Assertions.assertEquals(16, consumers.size());
+        Assertions.assertEquals(18, classicConsumers.size() + fluxConsumers.size());
 
         final Consumer<?> consumer =
-            consumers.stream().filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl("topic-one"))).findFirst().orElseThrow(Exception::new);
+            classicConsumers.stream().filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl("topic-one"))).findFirst().orElseThrow(Exception::new);
 
         Assertions.assertNotNull(consumer);
     }
@@ -169,7 +181,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         final Map<String, ImmutablePair<Class<?>, Serialization>> topics = producerFactory.getTopics();
 
-        Assertions.assertEquals(16, topics.size());
+        Assertions.assertEquals(18, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
@@ -303,5 +315,48 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         producer.send(TestConsumers.EXCLUSIVE_SUB_TEST, new MyMsg(VALIDATION_STRING));
         await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.subscribeToSharedTopicSubscription.get());
+    }
+
+    @Test
+    void testFluxConsumer() throws PulsarClientException {
+        final AtomicBoolean received = new AtomicBoolean(false);
+
+        myTestFluxConsumer.asSimpleFlux()
+            .doOnError(error -> System.out.println(error.getMessage()))
+            .subscribe(msg -> {
+                Assertions.assertNotNull(msg);
+                Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, msg.getData());
+                received.set(true);
+            });
+
+        producer.send(TestFluxConsumersConfiguration.BASIC_FLUX_TOPIC_TEST, new MyMsg(VALIDATION_STRING));
+
+        await().atMost(Duration.ofSeconds(10)).until(received::get);
+    }
+
+    @Test
+    void testRobustFluxConsumer() throws PulsarClientException {
+        final AtomicBoolean received = new AtomicBoolean(false);
+
+        robustFluxConsumer.asFlux()
+            .doOnError(error -> System.out.println(error.getMessage()))
+            .subscribe(msg -> {
+                try {
+                    final MyMsg myMsg = (MyMsg) msg.getMessage().getValue();
+
+                    Assertions.assertNotNull(myMsg);
+                    Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, myMsg.getData());
+
+                    msg.getConsumer().acknowledge(msg.getMessage());
+                    received.set(true);
+                } catch (PulsarClientException e) {
+                    msg.getConsumer().negativeAcknowledge(msg.getMessage());
+                    e.printStackTrace();
+                }
+            });
+
+        producer.send(TestFluxConsumersConfiguration.ROBUST_FLUX_TOPIC_TEST, new MyMsg(VALIDATION_STRING));
+
+        await().atMost(Duration.ofSeconds(10)).until(received::get);
     }
 }

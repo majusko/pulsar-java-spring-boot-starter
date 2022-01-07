@@ -290,6 +290,89 @@ public class PulsarErrorHandler {
 }
 ```
 
+#### 5. Reactor support (Flux)
+
+If you wish to use reactor core for your project, it's possible with using different flow of consumer creation as you can see below.
+
+1. First, you need to create a configuration class where you configure and register your consumer beans.
+
+```java
+@Configuration
+public class MyFluxConsumers {
+    
+    @Autowired
+    private FluxConsumerFactory fluxConsumerFactory;
+
+    @Bean
+    public FluxConsumer<MyMsg> myFluxConsumer() {
+        return fluxConsumerFactory.newConsumer(
+            PulsarFluxConsumer.builder()
+                .setTopic("flux-topic")
+                .setConsumerName("flux-consumer")
+                .setSubscriptionName("flux-subscription")
+                .setClazz(MyMsg.class)
+                .build());
+    }
+}
+```
+
+2. You simply autowire your bean and subscribe to your reactor stream.
+
+```java
+@Service
+public class MyFluxConsumerService {
+    
+    @Autowired
+    private FluxConsumer<MyMsg> myFluxConsumer;
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void subscribe() {
+        myFluxConsumer
+            .asSimpleFlux()
+            .subscribe(msg -> System.out.println(msg.getData()));
+    }
+}
+```
+
+3. (Optional) If you wish to acknowledge your messages manually you can configure your consumers a bit differently.
+
+```java
+PulsarFluxConsumer.builder()
+    .setTopic("flux-topic")
+    .setConsumerName("flux-consumer")
+    .setSubscriptionName("flux-subscription")
+    .setClazz(MyMsg.class)
+    .setSimple(false) // This is your required change in bean configuration class
+    .build());
+```
+
+```java
+@Service
+public class MyFluxConsumerService {
+    
+    @Autowired
+    private FluxConsumer<MyMsg> myFluxConsumer;
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void subscribe() {
+        myFluxConsumer.asFlux()
+            .subscribe(msg -> {
+                try {
+                    final MyMsg myMsg = (MyMsg) msg.getMessage().getValue();
+
+                    System.out.println(myMsg.getData());
+
+                    // you need to acknowledge the message manually on finished job
+                    msg.getConsumer().acknowledge(msg.getMessage());
+                } catch (PulsarClientException e) {
+                    // you need to negatively acknowledge the message manually on failures
+                    msg.getConsumer().negativeAcknowledge(msg.getMessage());
+                }
+            });
+    }
+}
+```
+
 ## Contributing
 
 All contributors are welcome. If you never contributed to the open-source, start with reading the [Github Flow](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/github-flow).
