@@ -34,6 +34,7 @@ public class PulsarProperties {
     private String oauth2IssuerUrl = null;
     private String oauth2CredentialsUrl = null;
     private String oauth2Audience = null;
+    private boolean autoStart = true;
 
     public String getServiceUrl() {
         return serviceUrl;
@@ -249,5 +250,13 @@ public class PulsarProperties {
 
     public void setOauth2Audience(String oauth2Audience) {
         this.oauth2Audience = oauth2Audience;
+    }
+
+    public boolean isAutoStart() {
+        return autoStart;
+    }
+
+    public void setAutoStart(boolean autoStart) {
+        this.autoStart = autoStart;
     }
 }
