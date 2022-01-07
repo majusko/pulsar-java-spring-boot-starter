@@ -16,7 +16,7 @@ Simple steps to start using the library.
 <dependency>
   <groupId>io.github.majusko</groupId>
   <artifactId>pulsar-java-spring-boot-starter</artifactId>
-  <version>1.0.7</version>
+  <version>1.1.0</version>
 </dependency>
 ```
 
