@@ -5,6 +5,8 @@ name: Build & Release
 
 on:
   push:
+    branches:
+      - 'release/**'
     tags:
       - "*"
 
