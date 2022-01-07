@@ -324,11 +324,12 @@ class PulsarJavaSpringBootStarterApplicationTests {
         myTestFluxConsumer.asSimpleFlux()
             .doOnError(error -> System.out.println(error.getMessage()))
             .subscribe(msg -> {
-                System.out.println(msg.getData());
+                Assertions.assertNotNull(msg);
+                Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, msg.getData());
                 received.set(true);
             });
 
-        producer.send(TestFluxConsumersConfiguration.BASIC_FLUX_TOPIC_TEST, new MyMsg("my test flux subscription"));
+        producer.send(TestFluxConsumersConfiguration.BASIC_FLUX_TOPIC_TEST, new MyMsg(VALIDATION_STRING));
 
         await().atMost(Duration.ofSeconds(10)).until(received::get);
     }
@@ -343,7 +344,8 @@ class PulsarJavaSpringBootStarterApplicationTests {
                 try {
                     final MyMsg myMsg = (MyMsg) msg.getMessage().getValue();
 
-                    System.out.println(myMsg.getData());
+                    Assertions.assertNotNull(myMsg);
+                    Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, myMsg.getData());
 
                     msg.getConsumer().acknowledge(msg.getMessage());
                     received.set(true);
@@ -353,7 +355,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
                 }
             });
 
-        producer.send(TestFluxConsumersConfiguration.ROBUST_FLUX_TOPIC_TEST, new MyMsg("my test flux subscription"));
+        producer.send(TestFluxConsumersConfiguration.ROBUST_FLUX_TOPIC_TEST, new MyMsg(VALIDATION_STRING));
 
         await().atMost(Duration.ofSeconds(10)).until(received::get);
     }

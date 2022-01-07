@@ -28,7 +28,7 @@ public class FluxConsumerFactory {
     public <T> FluxConsumer<T> newConsumer(PulsarFluxConsumer<T> fluxConsumer) throws ClientInitException, PulsarClientException {
         final SubscriptionType subscriptionType = urlBuildService.getSubscriptionType(fluxConsumer.getSubscriptionType());
         final ConsumerBuilder<?> consumerBuilder = pulsarClient
-            .newConsumer(SchemaUtils.getSchema(fluxConsumer.getSerialization(), fluxConsumer.getClazz()))
+            .newConsumer(SchemaUtils.getSchema(fluxConsumer.getSerialization(), fluxConsumer.getMessageClass()))
             .consumerName(fluxConsumer.getConsumerName())
             .subscriptionName(fluxConsumer.getSubscriptionName())
             .topic(urlBuildService.buildTopicUrl(fluxConsumer.getTopic()))

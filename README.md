@@ -330,7 +330,6 @@ public class MyFluxConsumerService {
             .subscribe(msg -> System.out.println(msg.getData()));
     }
 }
-
 ```
 
 3. (Optional) If you wish to acknowledge your messages manually you can configure your consumers a bit differently.

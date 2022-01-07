@@ -14,7 +14,7 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
 
     private final String topic;
 
-    private final Class<?> clazz;
+    private final Class<?> messageClass;
 
     private final Serialization serialization;
 
@@ -33,7 +33,7 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
     // TODO add buffer size configuration
     private PulsarFluxConsumer(
         String topic,
-        Class<?> clazz,
+        Class<?> messageClass,
         Serialization serialization,
         SubscriptionType subscriptionType,
         String consumerName,
@@ -43,7 +43,7 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
         boolean simple
     ) {
         this.topic = topic;
-        this.clazz = clazz;
+        this.messageClass = messageClass;
         this.serialization = serialization;
         this.subscriptionType = subscriptionType;
         this.consumerName = consumerName;
@@ -57,8 +57,8 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
         return topic;
     }
 
-    public Class<?> getClazz() {
-        return clazz;
+    public Class<?> getMessageClass() {
+        return messageClass;
     }
 
     public Serialization getSerialization() {
@@ -120,7 +120,7 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
     public static class FluxConsumerBuilder {
         private String topic;
 
-        private Class<?> clazz = byte[].class;
+        private Class<?> messageClass = byte[].class;
 
         private Serialization serialization = Serialization.JSON;
 
@@ -174,8 +174,8 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
             return this;
         }
 
-        public FluxConsumerBuilder setClazz(Class<?> clazz) {
-            this.clazz = clazz;
+        public FluxConsumerBuilder setMessageClass(Class<?> messageClass) {
+            this.messageClass = messageClass;
             return this;
         }
 
@@ -217,7 +217,7 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
         public <T> PulsarFluxConsumer<T> build() throws ClientInitException {
             validateBuilder();
 
-            return new PulsarFluxConsumer<>(topic, clazz, serialization, subscriptionType, consumerName, subscriptionName, maxRedeliverCount, deadLetterTopic, simple);
+            return new PulsarFluxConsumer<>(topic, messageClass, serialization, subscriptionType, consumerName, subscriptionName, maxRedeliverCount, deadLetterTopic, simple);
         }
 
         private void validateBuilder() throws ClientInitException {

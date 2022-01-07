@@ -27,7 +27,7 @@ public class TestFluxConsumersConfiguration {
                 .setTopic(BASIC_FLUX_TOPIC_TEST)
                 .setConsumerName("my-consumer-name")
                 .setSubscriptionName("my-subscription-name")
-                .setClazz(MyMsg.class)
+                .setMessageClass(MyMsg.class)
                 .build());
     }
 
@@ -38,7 +38,7 @@ public class TestFluxConsumersConfiguration {
                 .setTopic(ROBUST_FLUX_TOPIC_TEST)
                 .setConsumerName("my-robust-consumer-name")
                 .setSubscriptionName("my-robust-subscription-name")
-                .setClazz(MyMsg.class)
+                .setMessageClass(MyMsg.class)
                 .setSimple(false)
                 .build());
     }
