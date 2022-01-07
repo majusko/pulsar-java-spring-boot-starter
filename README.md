@@ -310,7 +310,7 @@ public class MyFluxConsumers {
                 .setTopic("flux-topic")
                 .setConsumerName("flux-consumer")
                 .setSubscriptionName("flux-subscription")
-                .setClazz(MyMsg.class)
+                .setMessageClass(MyMsg.class)
                 .build());
     }
 }
@@ -341,7 +341,7 @@ PulsarFluxConsumer.builder()
     .setTopic("flux-topic")
     .setConsumerName("flux-consumer")
     .setSubscriptionName("flux-subscription")
-    .setClazz(MyMsg.class)
+    .setMessageClass(MyMsg.class)
     .setSimple(false) // This is your required change in bean configuration class
     .build());
 ```
