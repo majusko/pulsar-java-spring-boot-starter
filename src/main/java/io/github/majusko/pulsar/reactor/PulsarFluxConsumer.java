@@ -30,7 +30,6 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
 
     private final boolean simple;
 
-    // TODO add buffer size configuration
     private PulsarFluxConsumer(
         String topic,
         Class<?> messageClass,
