@@ -1,6 +1,5 @@
 package io.github.majusko.pulsar.consumer;
 
-import com.google.common.base.Strings;
 import io.github.majusko.pulsar.PulsarMessage;
 import io.github.majusko.pulsar.collector.ConsumerCollector;
 import io.github.majusko.pulsar.collector.ConsumerHolder;
@@ -10,7 +9,7 @@ import io.github.majusko.pulsar.error.exception.ConsumerInitException;
 import io.github.majusko.pulsar.properties.ConsumerProperties;
 import io.github.majusko.pulsar.properties.PulsarProperties;
 import io.github.majusko.pulsar.utils.SchemaUtils;
-import io.github.majusko.pulsar.utils.UrlBuildService;
+import io.github.majusko.pulsar.service.UrlBuildService;
 import org.apache.pulsar.client.api.*;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.EmbeddedValueResolverAware;
@@ -23,7 +22,6 @@ import reactor.core.publisher.Sinks;
 import reactor.util.concurrent.Queues;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -56,9 +54,9 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
     public void init() {
         if(pulsarProperties.isAutoStart()) {
             consumers = consumerCollector.getConsumers().entrySet().stream()
-                .filter(holder -> holder.getValue().getAnnotation().autoStart())
-                .map(holder -> subscribe(holder.getKey(), holder.getValue()))
-                .collect(Collectors.toList());
+                    .filter(holder -> holder.getValue().getAnnotation().autoStart())
+                    .map(holder -> subscribe(holder.getKey(), holder.getValue()))
+                    .collect(Collectors.toList());
         }
     }
 
@@ -67,40 +65,42 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
             final String consumerName = stringValueResolver.resolveStringValue(holder.getAnnotation().consumerName());
             final String subscriptionName = stringValueResolver.resolveStringValue(holder.getAnnotation().subscriptionName());
             final String topicName = stringValueResolver.resolveStringValue(holder.getAnnotation().topic());
+            //命名空间
+            final String namespace = stringValueResolver.resolveStringValue(holder.getAnnotation().namespace());
             final SubscriptionType subscriptionType = urlBuildService.getSubscriptionType(holder);
             final ConsumerBuilder<?> consumerBuilder = pulsarClient
-                .newConsumer(SchemaUtils.getSchema(holder.getAnnotation().serialization(),
-                    holder.getAnnotation().clazz()))
-                .consumerName(urlBuildService.buildPulsarConsumerName(consumerName, generatedConsumerName))
-                .subscriptionName(urlBuildService.buildPulsarSubscriptionName(subscriptionName, generatedConsumerName))
-                .topic(urlBuildService.buildTopicUrl(topicName))
-                .subscriptionType(subscriptionType)
-                .messageListener((consumer, msg) -> {
-                    try {
-                        final Method method = holder.getHandler();
-                        method.setAccessible(true);
+                    .newConsumer(SchemaUtils.getSchema(holder.getAnnotation().serialization(),
+                            holder.getAnnotation().clazz()))
+                    .consumerName(urlBuildService.buildPulsarConsumerName(consumerName, generatedConsumerName))
+                    .subscriptionName(urlBuildService.buildPulsarSubscriptionName(subscriptionName, generatedConsumerName))
+                    .topic(urlBuildService.buildTopicUrl(topicName,namespace))
+                    .subscriptionType(subscriptionType)
+                    .messageListener((consumer, msg) -> {
+                        try {
+                            final Method method = holder.getHandler();
+                            method.setAccessible(true);
 
-                        if (holder.isWrapped()) {
-                            method.invoke(holder.getBean(), wrapMessage(msg));
-                        } else {
-                            method.invoke(holder.getBean(), msg.getValue());
+                            if (holder.isWrapped()) {
+                                method.invoke(holder.getBean(), wrapMessage(msg));
+                            } else {
+                                method.invoke(holder.getBean(), msg.getValue());
+                            }
+
+                            consumer.acknowledge(msg);
+                        } catch (Exception e) {
+                            consumer.negativeAcknowledge(msg);
+                            sink.tryEmitNext(new FailedMessage(e, consumer, msg));
                         }
-
-                        consumer.acknowledge(msg);
-                    } catch (Exception e) {
-                        consumer.negativeAcknowledge(msg);
-                        sink.tryEmitNext(new FailedMessage(e, consumer, msg));
-                    }
-                });
+                    });
 
             if (consumerProperties.getAckTimeoutMs() > 0) {
                 consumerBuilder.ackTimeout(consumerProperties.getAckTimeoutMs(), TimeUnit.MILLISECONDS);
             }
 
             urlBuildService.buildDeadLetterPolicy(
-                holder.getAnnotation().maxRedeliverCount(),
-                holder.getAnnotation().deadLetterTopic(),
-                consumerBuilder);
+                    holder.getAnnotation().maxRedeliverCount(),
+                    holder.getAnnotation().deadLetterTopic(),
+                    consumerBuilder);
 
             return consumerBuilder.subscribe();
         } catch (PulsarClientException | ClientInitException e) {

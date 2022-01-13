@@ -4,7 +4,7 @@ import io.github.majusko.pulsar.annotation.PulsarProducer;
 import io.github.majusko.pulsar.collector.ProducerHolder;
 import io.github.majusko.pulsar.error.exception.ProducerInitException;
 import io.github.majusko.pulsar.utils.SchemaUtils;
-import io.github.majusko.pulsar.utils.UrlBuildService;
+import io.github.majusko.pulsar.service.UrlBuildService;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;

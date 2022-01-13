@@ -1,7 +1,7 @@
 package io.github.majusko.pulsar.collector;
 
 import io.github.majusko.pulsar.annotation.PulsarConsumer;
-import io.github.majusko.pulsar.utils.UrlBuildService;
+import io.github.majusko.pulsar.service.UrlBuildService;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Configuration;
 

@@ -64,4 +64,10 @@ public @interface PulsarConsumer {
      * By default, the value is `true`
      */
     boolean autoStart() default true;
+
+    /**
+     * Set the namespace, which is set in the configuration file by default.
+     * After the setting here, it shall prevail. It is mainly used for multiple namespaces in one project.
+     */
+    String namespace() default "";
 }
