@@ -7,10 +7,6 @@ import org.apache.pulsar.client.api.interceptor.ProducerInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @author crossoverJie
- * Date: 2022/2/14 16:48
- */
 public class DefaultProducerInterceptor implements ProducerInterceptor {
     Logger logger = LoggerFactory.getLogger(DefaultProducerInterceptor.class);
 

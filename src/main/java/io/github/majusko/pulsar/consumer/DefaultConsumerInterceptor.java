@@ -9,10 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
-/**
- * @author crossoverJie
- * Date: 2022/3/10 00:32
- */
 public class DefaultConsumerInterceptor<T> implements ConsumerInterceptor<T> {
     Logger logger = LoggerFactory.getLogger(DefaultConsumerInterceptor.class);
     @Override
