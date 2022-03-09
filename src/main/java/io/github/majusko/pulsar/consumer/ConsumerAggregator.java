@@ -1,6 +1,5 @@
 package io.github.majusko.pulsar.consumer;
 
-import com.google.common.base.Strings;
 import io.github.majusko.pulsar.PulsarMessage;
 import io.github.majusko.pulsar.collector.ConsumerCollector;
 import io.github.majusko.pulsar.collector.ConsumerHolder;
@@ -23,7 +22,6 @@ import reactor.core.publisher.Sinks;
 import reactor.util.concurrent.Queues;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -42,14 +40,17 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
 
     private StringValueResolver stringValueResolver;
     private List<Consumer> consumers;
+    private ConsumerInterceptor consumerInterceptor;
 
     public ConsumerAggregator(ConsumerCollector consumerCollector, PulsarClient pulsarClient,
-                              ConsumerProperties consumerProperties, PulsarProperties pulsarProperties, UrlBuildService urlBuildService) {
+                              ConsumerProperties consumerProperties, PulsarProperties pulsarProperties, UrlBuildService urlBuildService,
+                              ConsumerInterceptor consumerInterceptor) {
         this.consumerCollector = consumerCollector;
         this.pulsarClient = pulsarClient;
         this.consumerProperties = consumerProperties;
         this.pulsarProperties = pulsarProperties;
         this.urlBuildService = urlBuildService;
+        this.consumerInterceptor = consumerInterceptor;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -75,6 +76,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                 .subscriptionName(urlBuildService.buildPulsarSubscriptionName(subscriptionName, generatedConsumerName))
                 .topic(urlBuildService.buildTopicUrl(topicName))
                 .subscriptionType(subscriptionType)
+                .intercept(consumerInterceptor)
                 .messageListener((consumer, msg) -> {
                     try {
                         final Method method = holder.getHandler();

@@ -9,6 +9,7 @@ import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.Schema;
+import org.apache.pulsar.client.api.interceptor.ProducerInterceptor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.stereotype.Component;
@@ -27,10 +28,12 @@ public class ProducerCollector implements BeanPostProcessor, EmbeddedValueResolv
     private final Map<String, Producer> producers = new ConcurrentHashMap<>();
 
     private StringValueResolver stringValueResolver;
+    private ProducerInterceptor producerInterceptor;
 
-    public ProducerCollector(PulsarClient pulsarClient, UrlBuildService urlBuildService) {
+    public ProducerCollector(PulsarClient pulsarClient, UrlBuildService urlBuildService, ProducerInterceptor producerInterceptor) {
         this.pulsarClient = pulsarClient;
         this.urlBuildService = urlBuildService;
+        this.producerInterceptor = producerInterceptor;
     }
 
     @Override
@@ -58,6 +61,7 @@ public class ProducerCollector implements BeanPostProcessor, EmbeddedValueResolv
         try {
             return pulsarClient.newProducer(getSchema(holder))
                 .topic(urlBuildService.buildTopicUrl(holder.getTopic()))
+                .intercept(producerInterceptor)
                 .create();
         } catch (PulsarClientException e) {
             throw new ProducerInitException("Failed to init producer.", e);
