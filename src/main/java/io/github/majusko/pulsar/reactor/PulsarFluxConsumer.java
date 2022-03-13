@@ -3,6 +3,7 @@ package io.github.majusko.pulsar.reactor;
 import com.google.common.base.Strings;
 import io.github.majusko.pulsar.constant.Serialization;
 import io.github.majusko.pulsar.error.exception.ClientInitException;
+import org.apache.pulsar.client.api.SubscriptionInitialPosition;
 import org.apache.pulsar.client.api.SubscriptionType;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
@@ -30,6 +31,8 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
 
     private final boolean simple;
 
+    private final SubscriptionInitialPosition initialPosition;
+
     private PulsarFluxConsumer(
         String topic,
         Class<?> messageClass,
@@ -39,8 +42,8 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
         String subscriptionName,
         int maxRedeliverCount,
         String deadLetterTopic,
-        boolean simple
-    ) {
+        boolean simple,
+        SubscriptionInitialPosition initialPosition) {
         this.topic = topic;
         this.messageClass = messageClass;
         this.serialization = serialization;
@@ -50,6 +53,7 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
         this.maxRedeliverCount = maxRedeliverCount;
         this.deadLetterTopic = deadLetterTopic;
         this.simple = simple;
+        this.initialPosition = initialPosition;
     }
 
     public String getTopic() {
@@ -86,6 +90,10 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
 
     public boolean isSimple() {
         return simple;
+    }
+
+    public SubscriptionInitialPosition getInitialPosition() {
+        return initialPosition;
     }
 
     public Sinks.EmitResult simpleEmit(T msg) {
@@ -168,6 +176,12 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
          */
         private boolean simple = true;
 
+        /**
+         * When creating a consumer, if the subscription does not exist, a new subscription will be created.
+         * By default, the subscription will be created at the end of the topic (Latest).
+         */
+        private SubscriptionInitialPosition initialPosition = SubscriptionInitialPosition.Latest;
+
         public FluxConsumerBuilder setTopic(String topic) {
             this.topic = topic;
             return this;
@@ -213,10 +227,15 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
             return this;
         }
 
+        public FluxConsumerBuilder setInitialPosition(SubscriptionInitialPosition initialPosition) {
+            this.initialPosition = initialPosition;
+            return this;
+        }
+
         public <T> PulsarFluxConsumer<T> build() throws ClientInitException {
             validateBuilder();
 
-            return new PulsarFluxConsumer<>(topic, messageClass, serialization, subscriptionType, consumerName, subscriptionName, maxRedeliverCount, deadLetterTopic, simple);
+            return new PulsarFluxConsumer<>(topic, messageClass, serialization, subscriptionType, consumerName, subscriptionName, maxRedeliverCount, deadLetterTopic, simple, initialPosition);
         }
 
         private void validateBuilder() throws ClientInitException {
