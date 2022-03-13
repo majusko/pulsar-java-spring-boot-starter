@@ -77,6 +77,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                 .topic(urlBuildService.buildTopicUrl(topicName))
                 .subscriptionType(subscriptionType)
                 .intercept(consumerInterceptor)
+                .subscriptionInitialPosition(holder.getAnnotation().initialPosition())
                 .messageListener((consumer, msg) -> {
                     try {
                         final Method method = holder.getHandler();

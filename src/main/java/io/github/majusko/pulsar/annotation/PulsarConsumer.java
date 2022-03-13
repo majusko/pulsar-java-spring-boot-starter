@@ -1,6 +1,7 @@
 package io.github.majusko.pulsar.annotation;
 
 import io.github.majusko.pulsar.constant.Serialization;
+import org.apache.pulsar.client.api.SubscriptionInitialPosition;
 import org.apache.pulsar.client.api.SubscriptionType;
 
 import java.lang.annotation.ElementType;
@@ -64,4 +65,10 @@ public @interface PulsarConsumer {
      * By default, the value is `true`
      */
     boolean autoStart() default true;
+
+    /**
+     * When creating a consumer, if the subscription does not exist, a new subscription will be created.
+     * By default, the subscription will be created at the end of the topic (Latest).
+     */
+    SubscriptionInitialPosition initialPosition() default SubscriptionInitialPosition.Latest;
 }
