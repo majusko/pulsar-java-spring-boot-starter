@@ -7,6 +7,7 @@ import io.github.majusko.pulsar.reactor.FluxConsumerFactory;
 import io.github.majusko.pulsar.reactor.FluxConsumerHolder;
 import io.github.majusko.pulsar.reactor.PulsarFluxConsumer;
 import org.apache.pulsar.client.api.PulsarClientException;
+import org.apache.pulsar.client.api.SubscriptionInitialPosition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +29,7 @@ public class TestFluxConsumersConfiguration {
                 .setConsumerName("my-consumer-name")
                 .setSubscriptionName("my-subscription-name")
                 .setMessageClass(MyMsg.class)
+                .setInitialPosition(SubscriptionInitialPosition.Latest)
                 .build());
     }
 
@@ -40,6 +42,7 @@ public class TestFluxConsumersConfiguration {
                 .setSubscriptionName("my-robust-subscription-name")
                 .setMessageClass(MyMsg.class)
                 .setSimple(false)
+                .setInitialPosition(SubscriptionInitialPosition.Latest)
                 .build());
     }
 }
