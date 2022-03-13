@@ -32,6 +32,7 @@ public class FluxConsumerFactory {
             .consumerName(fluxConsumer.getConsumerName())
             .subscriptionName(fluxConsumer.getSubscriptionName())
             .topic(urlBuildService.buildTopicUrl(fluxConsumer.getTopic()))
+            .subscriptionInitialPosition(fluxConsumer.getInitialPosition())
             .subscriptionType(subscriptionType)
             .messageListener((consumer, msg) -> {
                 try {
