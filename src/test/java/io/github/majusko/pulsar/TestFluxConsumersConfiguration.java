@@ -41,6 +41,7 @@ public class TestFluxConsumersConfiguration {
                 .setConsumerName("my-robust-consumer-name")
                 .setSubscriptionName("my-robust-subscription-name")
                 .setMessageClass(MyMsg.class)
+                .setBackPressureBufferSize(1024)
                 .setSimple(false)
                 .setInitialPosition(SubscriptionInitialPosition.Latest)
                 .build());
