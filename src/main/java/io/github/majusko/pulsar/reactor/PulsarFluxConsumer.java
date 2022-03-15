@@ -10,8 +10,10 @@ import reactor.core.publisher.Sinks;
 import reactor.util.concurrent.Queues;
 
 public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
-    private final Sinks.Many<T> simpleSink = Sinks.many().multicast().onBackpressureBuffer(Queues.SMALL_BUFFER_SIZE, false);
-    private final Sinks.Many<FluxConsumerHolder> robustSink = Sinks.many().multicast().onBackpressureBuffer(Queues.SMALL_BUFFER_SIZE, false);
+
+    private final Sinks.Many<T> simpleSink;
+
+    private final Sinks.Many<FluxConsumerHolder> robustSink;
 
     private final String topic;
 
@@ -43,7 +45,11 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
         int maxRedeliverCount,
         String deadLetterTopic,
         boolean simple,
-        SubscriptionInitialPosition initialPosition) {
+        SubscriptionInitialPosition initialPosition,
+        int backPressureBufferSize
+        ) {
+        this.simpleSink = Sinks.many().multicast().onBackpressureBuffer(backPressureBufferSize, false);
+        this.robustSink = Sinks.many().multicast().onBackpressureBuffer(backPressureBufferSize, false);
         this.topic = topic;
         this.messageClass = messageClass;
         this.serialization = serialization;
@@ -182,6 +188,12 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
          */
         private SubscriptionInitialPosition initialPosition = SubscriptionInitialPosition.Latest;
 
+        /**
+         * You can override the default buffer size for the backpressure behaviour of the reactor
+         * core used for consumers.
+         */
+        private int backPressureBufferSize = Queues.SMALL_BUFFER_SIZE;
+
         public FluxConsumerBuilder setTopic(String topic) {
             this.topic = topic;
             return this;
@@ -232,10 +244,14 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
             return this;
         }
 
+        public void setBackPressureBufferSize(int backPressureBufferSize) {
+            this.backPressureBufferSize = backPressureBufferSize;
+        }
+
         public <T> PulsarFluxConsumer<T> build() throws ClientInitException {
             validateBuilder();
 
-            return new PulsarFluxConsumer<>(topic, messageClass, serialization, subscriptionType, consumerName, subscriptionName, maxRedeliverCount, deadLetterTopic, simple, initialPosition);
+            return new PulsarFluxConsumer<>(topic, messageClass, serialization, subscriptionType, consumerName, subscriptionName, maxRedeliverCount, deadLetterTopic, simple, initialPosition, backPressureBufferSize);
         }
 
         private void validateBuilder() throws ClientInitException {
