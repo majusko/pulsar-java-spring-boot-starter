@@ -23,7 +23,7 @@
 		<testcontainers.version>1.16.3</testcontainers.version>
 		<junit-jupiter.version>5.8.2</junit-jupiter.version>
 		<awaitility.version>4.2.0</awaitility.version>
-		<reactor.core.version>3.4.15</reactor.core.version>
+		<reactor.core.version>3.4.16</reactor.core.version>
 		<google.protobuf.version>3.19.4</google.protobuf.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
