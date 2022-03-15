@@ -9,53 +9,55 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
-public class DefaultConsumerInterceptor<T> implements ConsumerInterceptor<T> {
-    Logger logger = LoggerFactory.getLogger(DefaultConsumerInterceptor.class);
+public class DefaultConsumerInterceptor<T extends Object> implements ConsumerInterceptor<T> {
+
+    private final static Logger logger = LoggerFactory.getLogger(DefaultConsumerInterceptor.class);
+
     @Override
     public void close() {
-
+        logger.debug("DefaultConsumerInterceptor closed");
     }
 
     @Override
     public Message<T> beforeConsume(Consumer<T> consumer, Message<T> message) {
-        logger.info("[Pulsar consumer log:BeforeConsume] ProducerName[{}], ConsumerName:[{}], Topic:[{}], msgID:[{}], Payload:[{}],"+
+        logger.debug("[Pulsar consumer log:BeforeConsume] ProducerName[{}], ConsumerName:[{}], Topic:[{}], msgID:[{}]," +
                 " MessageKey:[{}], PublishTime:[{}], RedeliveryCount:[{}], GetReplicatedFrom:[{}]",
-                message.getProducerName(), consumer.getConsumerName(), message.getTopicName(), message.getMessageId(), new String(message.getData()),
-                message.getKey(), message.getPublishTime(), message.getRedeliveryCount(), message.getReplicatedFrom());
+            message.getProducerName(), consumer.getConsumerName(), message.getTopicName(), message.getMessageId(),
+            message.getKey(), message.getPublishTime(), message.getRedeliveryCount(), message.getReplicatedFrom());
 
         return message;
     }
 
     @Override
     public void onAcknowledge(Consumer<T> consumer, MessageId messageId, Throwable exception) {
-        if (exception != null){
-            logger.info("[Pulsar consumer log:OnAcknowledge] ConsumerName:[{}], msgID:[{}], exception:[{}]", consumer.getConsumerName(), messageId, exception);
+        if (exception != null) {
+            logger.debug("[Pulsar consumer log:OnAcknowledge] ConsumerName:[{}], msgID:[{}], exception:[{}]", consumer.getConsumerName(), messageId, exception);
             return;
         }
-        logger.info("[Pulsar consumer log:OnAcknowledge] ConsumerName:[{}], msgID:[{}]", consumer.getConsumerName(), messageId);
+        logger.debug("[Pulsar consumer log:OnAcknowledge] ConsumerName:[{}], msgID:[{}]", consumer.getConsumerName(), messageId);
     }
 
     @Override
     public void onAcknowledgeCumulative(Consumer<T> consumer, MessageId messageId, Throwable exception) {
-        if (exception != null){
-            logger.info("[Pulsar consumer log:OnAcknowledgeCumulative] ConsumerName:[{}], msgID:[{}], exception:[{}]", consumer.getConsumerName(), messageId, exception);
+        if (exception != null) {
+            logger.debug("[Pulsar consumer log:OnAcknowledgeCumulative] ConsumerName:[{}], msgID:[{}], exception:[{}]", consumer.getConsumerName(), messageId, exception);
             return;
         }
-        logger.info("[Pulsar consumer log:OnAcknowledgeCumulative] ConsumerName:[{}], msgID:[{}]", consumer.getConsumerName(), messageId);
+        logger.debug("[Pulsar consumer log:OnAcknowledgeCumulative] ConsumerName:[{}], msgID:[{}]", consumer.getConsumerName(), messageId);
     }
 
     @Override
     public void onNegativeAcksSend(Consumer<T> consumer, Set<MessageId> messageIds) {
-        logger.info("[Pulsar consumer log:OnNegativeAcksSend] ConsumerName:[{}], msgID:[{}]", consumer.getConsumerName() ,messageIds);
+        logger.debug("[Pulsar consumer log:OnNegativeAcksSend] ConsumerName:[{}], msgID:[{}]", consumer.getConsumerName(), messageIds);
     }
 
     @Override
     public void onAckTimeoutSend(Consumer<T> consumer, Set<MessageId> messageIds) {
-        logger.info("[Pulsar consumer log:OnAckTimeoutSend] ConsumerName:[{}], msgID:[{}]", consumer.getConsumerName() ,messageIds);
+        logger.debug("[Pulsar consumer log:OnAckTimeoutSend] ConsumerName:[{}], msgID:[{}]", consumer.getConsumerName(), messageIds);
     }
 
     @Override
     public void onPartitionsChange(String topicName, int partitions) {
-        logger.info("[Pulsar consumer log:OnPartitionsChange] Topic:[{}], Partitions:[{}]", topicName, partitions);
+        logger.debug("[Pulsar consumer log:OnPartitionsChange] Topic:[{}], Partitions:[{}]", topicName, partitions);
     }
 }
