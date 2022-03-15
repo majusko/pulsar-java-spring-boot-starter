@@ -1,13 +1,13 @@
 package io.github.majusko.pulsar;
 
 import com.google.common.base.Strings;
+import io.github.majusko.pulsar.consumer.DefaultConsumerInterceptor;
 import io.github.majusko.pulsar.error.exception.ClientInitException;
+import io.github.majusko.pulsar.producer.DefaultProducerInterceptor;
 import io.github.majusko.pulsar.properties.ConsumerProperties;
 import io.github.majusko.pulsar.properties.PulsarProperties;
-import org.apache.pulsar.client.api.AuthenticationFactory;
-import org.apache.pulsar.client.api.ClientBuilder;
-import org.apache.pulsar.client.api.PulsarClient;
-import org.apache.pulsar.client.api.PulsarClientException;
+import org.apache.pulsar.client.api.*;
+import org.apache.pulsar.client.api.interceptor.ProducerInterceptor;
 import org.apache.pulsar.client.impl.auth.oauth2.AuthenticationFactoryOAuth2;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -28,6 +28,18 @@ public class PulsarAutoConfiguration {
 
     public PulsarAutoConfiguration(PulsarProperties pulsarProperties) {
         this.pulsarProperties = pulsarProperties;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ProducerInterceptor producerInterceptor(){
+        return new DefaultProducerInterceptor();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ConsumerInterceptor consumerInterceptor(){
+        return new DefaultConsumerInterceptor();
     }
 
     @Bean

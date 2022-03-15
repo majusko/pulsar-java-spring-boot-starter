@@ -2,6 +2,7 @@ package io.github.majusko.pulsar.reactor;
 
 import io.github.majusko.pulsar.error.exception.ClientInitException;
 import io.github.majusko.pulsar.properties.ConsumerProperties;
+import io.github.majusko.pulsar.properties.PulsarProperties;
 import io.github.majusko.pulsar.utils.SchemaUtils;
 import io.github.majusko.pulsar.service.UrlBuildService;
 import org.apache.pulsar.client.api.*;
@@ -16,13 +17,17 @@ public class FluxConsumerFactory {
     private final PulsarClient pulsarClient;
     private final UrlBuildService urlBuildService;
     private final ConsumerProperties consumerProperties;
+    private final PulsarProperties pulsarProperties;
+    private final ConsumerInterceptor consumerInterceptor;
 
     private List<Consumer> consumers = new ArrayList<>();
 
-    public FluxConsumerFactory(PulsarClient pulsarClient, UrlBuildService urlBuildService, ConsumerProperties consumerProperties) {
+    public FluxConsumerFactory(PulsarClient pulsarClient, UrlBuildService urlBuildService, ConsumerProperties consumerProperties, PulsarProperties pulsarProperties, ConsumerInterceptor consumerInterceptor) {
         this.pulsarClient = pulsarClient;
         this.urlBuildService = urlBuildService;
         this.consumerProperties = consumerProperties;
+        this.pulsarProperties = pulsarProperties;
+        this.consumerInterceptor = consumerInterceptor;
     }
 
     public <T> FluxConsumer<T> newConsumer(PulsarFluxConsumer<T> fluxConsumer) throws ClientInitException, PulsarClientException {
@@ -32,6 +37,7 @@ public class FluxConsumerFactory {
             .consumerName(fluxConsumer.getConsumerName())
             .subscriptionName(fluxConsumer.getSubscriptionName())
             .topic(urlBuildService.buildTopicUrl(fluxConsumer.getTopic()))
+            .subscriptionInitialPosition(fluxConsumer.getInitialPosition())
             .subscriptionType(subscriptionType)
             .messageListener((consumer, msg) -> {
                 try {
@@ -51,6 +57,10 @@ public class FluxConsumerFactory {
                     }
                 }
             });
+
+        if(pulsarProperties.isAllowInterceptor()) {
+            consumerBuilder.intercept(consumerInterceptor);
+        }
 
         if (consumerProperties.getAckTimeoutMs() > 0) {
             consumerBuilder.ackTimeout(consumerProperties.getAckTimeoutMs(), TimeUnit.MILLISECONDS);

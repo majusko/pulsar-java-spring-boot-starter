@@ -89,6 +89,12 @@ class PulsarJavaSpringBootStarterApplicationTests {
     private FluxConsumer<FluxConsumerHolder> robustFluxConsumer;
 
     @Autowired
+    private TestConsumerInterceptor testConsumerInterceptor;
+
+    @Autowired
+    private TestProducerInterceptor testProducerInterceptor;
+
+    @Autowired
     private FluxConsumerFactory fluxConsumerFactory;
 
     @Value("${my.custom.subscription.name}")
@@ -109,19 +115,32 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
     @Test
     void testProducerSendMethod() throws PulsarClientException {
-        producer.send("topic-one", new MyMsg("bb"));
+        producer.send("topic-one", new MyMsg(VALIDATION_STRING));
 
         await().untilTrue(testConsumers.mockTopicListenerReceived);
     }
 
     @Test
+    void testBasicConsumerInterceptor() throws PulsarClientException {
+        producer.send("topic-one", new MyMsg(VALIDATION_STRING));
+
+        await().untilTrue(testProducerInterceptor.beforeSendReceived);
+        await().untilTrue(testProducerInterceptor.eligibleReceived);
+        await().untilTrue(testProducerInterceptor.onSendAcknowledgementReceived);
+        await().untilTrue(testConsumerInterceptor.beforeConsumeReceived);
+        await().untilTrue(testConsumerInterceptor.onAcknowledgeReceived);
+    }
+
+    @Test
     void testBasicDeadLetterRetryPolicy() throws PulsarClientException {
 
-        producer.send("topic-retry", new MyMsg("bb"));
+        producer.send("topic-retry", new MyMsg(VALIDATION_STRING));
 
         await().untilTrue(testConsumers.mockRetryCountListenerReceived);
 
         Assertions.assertEquals(3, testConsumers.failTwiceRetryCount.get());
+
+        await().untilTrue(testConsumerInterceptor.onAckTimeoutSendReceived);
     }
 
     @Test

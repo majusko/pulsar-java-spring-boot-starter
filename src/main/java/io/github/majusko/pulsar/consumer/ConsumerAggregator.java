@@ -36,18 +36,20 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
     private final ConsumerProperties consumerProperties;
     private final PulsarProperties pulsarProperties;
     private final UrlBuildService urlBuildService;
-    private final static SubscriptionType DEFAULT_SUBSCRIPTION_TYPE = SubscriptionType.Exclusive;
+    private final ConsumerInterceptor consumerInterceptor;
 
     private StringValueResolver stringValueResolver;
     private List<Consumer> consumers;
 
     public ConsumerAggregator(ConsumerCollector consumerCollector, PulsarClient pulsarClient,
-                              ConsumerProperties consumerProperties, PulsarProperties pulsarProperties, UrlBuildService urlBuildService) {
+                              ConsumerProperties consumerProperties, PulsarProperties pulsarProperties, UrlBuildService urlBuildService,
+                              ConsumerInterceptor consumerInterceptor) {
         this.consumerCollector = consumerCollector;
         this.pulsarClient = pulsarClient;
         this.consumerProperties = consumerProperties;
         this.pulsarProperties = pulsarProperties;
         this.urlBuildService = urlBuildService;
+        this.consumerInterceptor = consumerInterceptor;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -65,33 +67,31 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
             final String consumerName = stringValueResolver.resolveStringValue(holder.getAnnotation().consumerName());
             final String subscriptionName = stringValueResolver.resolveStringValue(holder.getAnnotation().subscriptionName());
             final String topicName = stringValueResolver.resolveStringValue(holder.getAnnotation().topic());
-            //命名空间
             final String namespace = stringValueResolver.resolveStringValue(holder.getAnnotation().namespace());
             final SubscriptionType subscriptionType = urlBuildService.getSubscriptionType(holder);
             final ConsumerBuilder<?> consumerBuilder = pulsarClient
-                    .newConsumer(SchemaUtils.getSchema(holder.getAnnotation().serialization(),
-                            holder.getAnnotation().clazz()))
-                    .consumerName(urlBuildService.buildPulsarConsumerName(consumerName, generatedConsumerName))
-                    .subscriptionName(urlBuildService.buildPulsarSubscriptionName(subscriptionName, generatedConsumerName))
-                    .topic(urlBuildService.buildTopicUrl(topicName,namespace))
-                    .subscriptionType(subscriptionType)
-                    .messageListener((consumer, msg) -> {
-                        try {
-                            final Method method = holder.getHandler();
-                            method.setAccessible(true);
+                .newConsumer(SchemaUtils.getSchema(holder.getAnnotation().serialization(),
+                    holder.getAnnotation().clazz()))
+                .consumerName(urlBuildService.buildPulsarConsumerName(consumerName, generatedConsumerName))
+                .subscriptionName(urlBuildService.buildPulsarSubscriptionName(subscriptionName, generatedConsumerName))
+                .topic(urlBuildService.buildTopicUrl(topicName,namespace))
+                .subscriptionType(subscriptionType)
+                .subscriptionInitialPosition(holder.getAnnotation().initialPosition())
+                .messageListener((consumer, msg) -> {
+                    try {
+                        final Method method = holder.getHandler();
+                        method.setAccessible(true);
 
-                            if (holder.isWrapped()) {
-                                method.invoke(holder.getBean(), wrapMessage(msg));
-                            } else {
-                                method.invoke(holder.getBean(), msg.getValue());
-                            }
-
-                            consumer.acknowledge(msg);
-                        } catch (Exception e) {
-                            consumer.negativeAcknowledge(msg);
-                            sink.tryEmitNext(new FailedMessage(e, consumer, msg));
+                        if (holder.isWrapped()) {
+                            method.invoke(holder.getBean(), wrapMessage(msg));
+                        } else {
+                            method.invoke(holder.getBean(), msg.getValue());
                         }
                     });
+
+            if(pulsarProperties.isAllowInterceptor()) {
+                consumerBuilder.intercept(consumerInterceptor);
+            }
 
             if (consumerProperties.getAckTimeoutMs() > 0) {
                 consumerBuilder.ackTimeout(consumerProperties.getAckTimeoutMs(), TimeUnit.MILLISECONDS);

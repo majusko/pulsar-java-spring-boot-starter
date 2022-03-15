@@ -122,6 +122,7 @@ pulsar.consumer-name-delimiter=
 pulsar.namespace=default
 pulsar.tenant=public
 pulsar.auto-start=true
+pulsar.allow-interceptor=false
 
 #Consumer
 pulsar.consumer.default.dead-letter-policy-max-redeliver-count=-1
@@ -177,6 +178,7 @@ pulsar.oauth2-audience=https://broker.example.com
 - `pulsar.namespace` - Namespace separation. For example: app1/app2 OR dev/staging/prod. More in [Namespaces docs](https://pulsar.apache.org/docs/en/concepts-messaging/#namespaces).
 - `pulsar.tenant` - Pulsar multi-tenancy support. More in [Multi Tenancy docs](https://pulsar.apache.org/docs/en/concepts-multi-tenancy/).
 - `pulsar.auto-start` - Whether the subscriptions should start on application startup. Useful in case you wish to not subscribe on some environments (dev,PoC,...).
+- `pulsar.allow-interceptor` - Whether the application should allow usage of interceptors and inject default interceptors with `DEBUG` level logging.
 
 **Change only in case TLS is enabled** (By using `pulsar+ssl://` as `pulsar.service-url` value prefix.)
 
@@ -373,12 +375,53 @@ public class MyFluxConsumerService {
 }
 ```
 
+#### 6. Interceptor - Adding default or custom consumer or producer interceptors
+
+You can register your own interceptors and use it for example with some additional logging.
+First, you need to allow default interceptor that already have some `DEBUG` level logging in place.
+
+```properties
+pulsar.allow-interceptor=true
+```
+
+For custom interceptor you need to create a bean that extends the `DefaultConsumerInterceptor`. Example usage:
+
+*Consumer Interceptor Example:*
+```java
+@Component
+public class PulsarConsumerInterceptor extends DefaultConsumerInterceptor<Object> {
+    @Override
+    public Message beforeConsume(Consumer<Object> consumer, Message message) {
+        System.out.println("do something");
+        return super.beforeConsume(consumer, message);
+    }
+}
+```
+*Producer Interceptor Example:*
+```java
+@Component
+public class PulsarProducerInterceptor extends DefaultProducerInterceptor {
+
+    @Override
+    public Message beforeSend(Producer producer, Message message) {
+        super.beforeSend(producer, message);
+        System.out.println("do something");
+        return message;
+    }
+
+    @Override
+    public void onSendAcknowledgement(Producer producer, Message message, MessageId msgId, Throwable exception) {
+        super.onSendAcknowledgement(producer, message, msgId, exception);
+    }
+}
+```
+
 ## Contributing
 
 All contributors are welcome. If you never contributed to the open-source, start with reading the [Github Flow](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/github-flow).
 
 ### Roadmap task
-1. Pick a task from simple roadmap in [Projects](https://github.com/majusko/pulsar-java-spring-boot-starter/projects) section.
+1. Pick a task from [issues](https://github.com/majusko/pulsar-java-spring-boot-starter/issues) section.
 2. Create a [pull request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests) with reference (url) to the task inside the [Projects](https://github.com/majusko/pulsar-java-spring-boot-starter/projects) section.
 3. Rest and enjoy the great feeling of being a contributor.
 

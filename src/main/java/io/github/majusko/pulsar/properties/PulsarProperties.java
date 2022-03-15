@@ -35,6 +35,7 @@ public class PulsarProperties {
     private String oauth2CredentialsUrl = null;
     private String oauth2Audience = null;
     private boolean autoStart = true;
+    private boolean allowInterceptor = false;
 
     public String getServiceUrl() {
         return serviceUrl;
@@ -258,5 +259,13 @@ public class PulsarProperties {
 
     public void setAutoStart(boolean autoStart) {
         this.autoStart = autoStart;
+    }
+
+    public boolean isAllowInterceptor() {
+        return allowInterceptor;
+    }
+
+    public void setAllowInterceptor(boolean allowInterceptor) {
+        this.allowInterceptor = allowInterceptor;
     }
 }
