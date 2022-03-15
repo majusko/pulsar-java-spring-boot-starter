@@ -244,8 +244,9 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
             return this;
         }
 
-        public void setBackPressureBufferSize(int backPressureBufferSize) {
+        public FluxConsumerBuilder setBackPressureBufferSize(int backPressureBufferSize) {
             this.backPressureBufferSize = backPressureBufferSize;
+            return this;
         }
 
         public <T> PulsarFluxConsumer<T> build() throws ClientInitException {
