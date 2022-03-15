@@ -36,11 +36,10 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
     private final ConsumerProperties consumerProperties;
     private final PulsarProperties pulsarProperties;
     private final UrlBuildService urlBuildService;
-    private final static SubscriptionType DEFAULT_SUBSCRIPTION_TYPE = SubscriptionType.Exclusive;
+    private final ConsumerInterceptor consumerInterceptor;
 
     private StringValueResolver stringValueResolver;
     private List<Consumer> consumers;
-    private ConsumerInterceptor consumerInterceptor;
 
     public ConsumerAggregator(ConsumerCollector consumerCollector, PulsarClient pulsarClient,
                               ConsumerProperties consumerProperties, PulsarProperties pulsarProperties, UrlBuildService urlBuildService,
@@ -76,7 +75,6 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                 .subscriptionName(urlBuildService.buildPulsarSubscriptionName(subscriptionName, generatedConsumerName))
                 .topic(urlBuildService.buildTopicUrl(topicName))
                 .subscriptionType(subscriptionType)
-                .intercept(consumerInterceptor)
                 .subscriptionInitialPosition(holder.getAnnotation().initialPosition())
                 .messageListener((consumer, msg) -> {
                     try {
@@ -95,6 +93,10 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                         sink.tryEmitNext(new FailedMessage(e, consumer, msg));
                     }
                 });
+
+            if(pulsarProperties.isAllowInterceptor()) {
+                consumerBuilder.intercept(consumerInterceptor);
+            }
 
             if (consumerProperties.getAckTimeoutMs() > 0) {
                 consumerBuilder.ackTimeout(consumerProperties.getAckTimeoutMs(), TimeUnit.MILLISECONDS);
