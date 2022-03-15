@@ -9,7 +9,7 @@ import io.github.majusko.pulsar.error.exception.ConsumerInitException;
 import io.github.majusko.pulsar.properties.ConsumerProperties;
 import io.github.majusko.pulsar.properties.PulsarProperties;
 import io.github.majusko.pulsar.utils.SchemaUtils;
-import io.github.majusko.pulsar.utils.UrlBuildService;
+import io.github.majusko.pulsar.service.UrlBuildService;
 import org.apache.pulsar.client.api.*;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.EmbeddedValueResolverAware;
@@ -56,9 +56,9 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
     public void init() {
         if(pulsarProperties.isAutoStart()) {
             consumers = consumerCollector.getConsumers().entrySet().stream()
-                .filter(holder -> holder.getValue().getAnnotation().autoStart())
-                .map(holder -> subscribe(holder.getKey(), holder.getValue()))
-                .collect(Collectors.toList());
+                    .filter(holder -> holder.getValue().getAnnotation().autoStart())
+                    .map(holder -> subscribe(holder.getKey(), holder.getValue()))
+                    .collect(Collectors.toList());
         }
     }
 
@@ -67,13 +67,14 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
             final String consumerName = stringValueResolver.resolveStringValue(holder.getAnnotation().consumerName());
             final String subscriptionName = stringValueResolver.resolveStringValue(holder.getAnnotation().subscriptionName());
             final String topicName = stringValueResolver.resolveStringValue(holder.getAnnotation().topic());
+            final String namespace = stringValueResolver.resolveStringValue(holder.getAnnotation().namespace());
             final SubscriptionType subscriptionType = urlBuildService.getSubscriptionType(holder);
             final ConsumerBuilder<?> consumerBuilder = pulsarClient
                 .newConsumer(SchemaUtils.getSchema(holder.getAnnotation().serialization(),
                     holder.getAnnotation().clazz()))
                 .consumerName(urlBuildService.buildPulsarConsumerName(consumerName, generatedConsumerName))
                 .subscriptionName(urlBuildService.buildPulsarSubscriptionName(subscriptionName, generatedConsumerName))
-                .topic(urlBuildService.buildTopicUrl(topicName))
+                .topic(urlBuildService.buildTopicUrl(topicName,namespace))
                 .subscriptionType(subscriptionType)
                 .subscriptionInitialPosition(holder.getAnnotation().initialPosition())
                 .messageListener((consumer, msg) -> {
@@ -86,13 +87,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                         } else {
                             method.invoke(holder.getBean(), msg.getValue());
                         }
-
-                        consumer.acknowledge(msg);
-                    } catch (Exception e) {
-                        consumer.negativeAcknowledge(msg);
-                        sink.tryEmitNext(new FailedMessage(e, consumer, msg));
-                    }
-                });
+                    });
 
             if(pulsarProperties.isAllowInterceptor()) {
                 consumerBuilder.intercept(consumerInterceptor);
@@ -103,9 +98,9 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
             }
 
             urlBuildService.buildDeadLetterPolicy(
-                holder.getAnnotation().maxRedeliverCount(),
-                holder.getAnnotation().deadLetterTopic(),
-                consumerBuilder);
+                    holder.getAnnotation().maxRedeliverCount(),
+                    holder.getAnnotation().deadLetterTopic(),
+                    consumerBuilder);
 
             return consumerBuilder.subscribe();
         } catch (PulsarClientException | ClientInitException e) {

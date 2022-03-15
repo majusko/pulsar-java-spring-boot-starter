@@ -67,6 +67,12 @@ public @interface PulsarConsumer {
     boolean autoStart() default true;
 
     /**
+     * Set the namespace, which is set in the configuration file by default.
+     * After the setting here, it shall prevail. It is mainly used for multiple namespaces in one project.
+     */
+    String namespace() default "";
+
+    /**
      * When creating a consumer, if the subscription does not exist, a new subscription will be created.
      * By default, the subscription will be created at the end of the topic (Latest).
      */
