@@ -4,7 +4,7 @@ import io.github.majusko.pulsar.error.exception.ClientInitException;
 import io.github.majusko.pulsar.properties.ConsumerProperties;
 import io.github.majusko.pulsar.properties.PulsarProperties;
 import io.github.majusko.pulsar.utils.SchemaUtils;
-import io.github.majusko.pulsar.service.UrlBuildService;
+import io.github.majusko.pulsar.utils.UrlBuildService;
 import org.apache.pulsar.client.api.*;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +36,7 @@ public class FluxConsumerFactory {
             .newConsumer(SchemaUtils.getSchema(fluxConsumer.getSerialization(), fluxConsumer.getMessageClass()))
             .consumerName(fluxConsumer.getConsumerName())
             .subscriptionName(fluxConsumer.getSubscriptionName())
-            .topic(urlBuildService.buildTopicUrl(fluxConsumer.getTopic()))
+            .topic(urlBuildService.buildTopicUrl(fluxConsumer.getTopic(), fluxConsumer.getNamespace()))
             .subscriptionInitialPosition(fluxConsumer.getInitialPosition())
             .subscriptionType(subscriptionType)
             .messageListener((consumer, msg) -> {

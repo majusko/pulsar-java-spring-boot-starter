@@ -54,11 +54,11 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
 
     @EventListener(ApplicationReadyEvent.class)
     public void init() {
-        if(pulsarProperties.isAutoStart()) {
+        if (pulsarProperties.isAutoStart()) {
             consumers = consumerCollector.getConsumers().entrySet().stream()
-                    .filter(holder -> holder.getValue().getAnnotation().autoStart())
-                    .map(holder -> subscribe(holder.getKey(), holder.getValue()))
-                    .collect(Collectors.toList());
+                .filter(holder -> holder.getValue().getAnnotation().autoStart())
+                .map(holder -> subscribe(holder.getKey(), holder.getValue()))
+                .collect(Collectors.toList());
         }
     }
 
@@ -87,9 +87,13 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                         } else {
                             method.invoke(holder.getBean(), msg.getValue());
                         }
-                    });
+                    } catch (Exception e) {
+                        consumer.negativeAcknowledge(msg);
+                        sink.tryEmitNext(new FailedMessage(e, consumer, msg));
+                    }
+                });
 
-            if(pulsarProperties.isAllowInterceptor()) {
+            if (pulsarProperties.isAllowInterceptor()) {
                 consumerBuilder.intercept(consumerInterceptor);
             }
 
@@ -98,9 +102,9 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
             }
 
             urlBuildService.buildDeadLetterPolicy(
-                    holder.getAnnotation().maxRedeliverCount(),
-                    holder.getAnnotation().deadLetterTopic(),
-                    consumerBuilder);
+                holder.getAnnotation().maxRedeliverCount(),
+                holder.getAnnotation().deadLetterTopic(),
+                consumerBuilder);
 
             return consumerBuilder.subscribe();
         } catch (PulsarClientException | ClientInitException e) {
