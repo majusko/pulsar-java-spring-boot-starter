@@ -2,7 +2,6 @@ package io.github.majusko.pulsar.collector;
 
 import com.beust.jcommander.internal.Sets;
 import io.github.majusko.pulsar.annotation.PulsarConsumer;
-import io.github.majusko.pulsar.service.UrlBuildService;
 import io.github.majusko.pulsar.utils.UrlBuildService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

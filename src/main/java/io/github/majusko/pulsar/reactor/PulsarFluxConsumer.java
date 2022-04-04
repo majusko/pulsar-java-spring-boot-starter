@@ -33,6 +33,8 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
 
     private final boolean simple;
 
+    private final String namespace;
+
     private final SubscriptionInitialPosition initialPosition;
 
     private PulsarFluxConsumer(
@@ -46,8 +48,8 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
         String deadLetterTopic,
         boolean simple,
         SubscriptionInitialPosition initialPosition,
-        int backPressureBufferSize
-        ) {
+        int backPressureBufferSize,
+        String namespace) {
         this.simpleSink = Sinks.many().multicast().onBackpressureBuffer(backPressureBufferSize, false);
         this.robustSink = Sinks.many().multicast().onBackpressureBuffer(backPressureBufferSize, false);
         this.topic = topic;
@@ -60,6 +62,7 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
         this.deadLetterTopic = deadLetterTopic;
         this.simple = simple;
         this.initialPosition = initialPosition;
+        this.namespace = namespace;
     }
 
     public String getTopic() {
@@ -96,6 +99,10 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
 
     public boolean isSimple() {
         return simple;
+    }
+
+    public String getNamespace() {
+        return namespace;
     }
 
     public SubscriptionInitialPosition getInitialPosition() {
@@ -183,6 +190,12 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
         private boolean simple = true;
 
         /**
+         * Set the namespace, which is set in the configuration file by default.
+         * After the setting here, it shall prevail. It is mainly used for multiple namespaces in one project.
+         */
+        private String namespace;
+
+        /**
          * When creating a consumer, if the subscription does not exist, a new subscription will be created.
          * By default, the subscription will be created at the end of the topic (Latest).
          */
@@ -239,6 +252,10 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
             return this;
         }
 
+        public void setNamespace(String namespace) {
+            this.namespace = namespace;
+        }
+
         public FluxConsumerBuilder setInitialPosition(SubscriptionInitialPosition initialPosition) {
             this.initialPosition = initialPosition;
             return this;
@@ -252,7 +269,7 @@ public class PulsarFluxConsumer<T> implements FluxConsumer<T> {
         public <T> PulsarFluxConsumer<T> build() throws ClientInitException {
             validateBuilder();
 
-            return new PulsarFluxConsumer<>(topic, messageClass, serialization, subscriptionType, consumerName, subscriptionName, maxRedeliverCount, deadLetterTopic, simple, initialPosition, backPressureBufferSize);
+            return new PulsarFluxConsumer<>(topic, messageClass, serialization, subscriptionType, consumerName, subscriptionName, maxRedeliverCount, deadLetterTopic, simple, initialPosition, backPressureBufferSize, namespace);
         }
 
         private void validateBuilder() throws ClientInitException {

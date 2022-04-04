@@ -39,7 +39,7 @@ public class TestConsumers {
     public static final String CUSTOM_SUB_AND_CONSUMER_TOPIC = "custom-sub-and-consumer";
     public static final String SHARED_SUB_TEST = "shared-sub-consumer";
     public static final String EXCLUSIVE_SUB_TEST = "exclusive-sub-consumer";
-    public static final String CUSTOM_NAMESPACE_TOPIC_TEST = "default";
+    public static final String CUSTOM_NAMESPACE_TOPIC = "custom-namespace-name";
 
     @PulsarConsumer(topic = "topic-one", clazz = MyMsg.class, serialization = Serialization.JSON)
     public void topicOneListener(MyMsg myMsg) {
@@ -182,7 +182,7 @@ public class TestConsumers {
     }
 
     @PulsarConsumer(
-        topic = CUSTOM_NAMESPACE_TOPIC_TEST,
+        topic = CUSTOM_NAMESPACE_TOPIC,
         clazz = MyMsg.class,
         subscriptionType = SubscriptionType.Exclusive,
         namespace = "default")

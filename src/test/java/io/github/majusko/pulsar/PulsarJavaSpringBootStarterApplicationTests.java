@@ -386,7 +386,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
                 .findFirst()
                 .orElseThrow(() -> new Exception("Missing tested consumer."));
 
-        producer.send(TestConsumers.CUSTOM_CONSUMER_TOPIC, new MyMsg(VALIDATION_STRING));
-        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.customConsumerTestReceived.get());
+        producer.send(TestConsumers.CUSTOM_NAMESPACE_TOPIC, new MyMsg(VALIDATION_STRING));
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.customConsumerNamespaceReceived.get());
     }
 }
