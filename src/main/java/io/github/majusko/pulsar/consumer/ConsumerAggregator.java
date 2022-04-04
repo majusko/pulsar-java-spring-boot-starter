@@ -9,7 +9,7 @@ import io.github.majusko.pulsar.error.exception.ConsumerInitException;
 import io.github.majusko.pulsar.properties.ConsumerProperties;
 import io.github.majusko.pulsar.properties.PulsarProperties;
 import io.github.majusko.pulsar.utils.SchemaUtils;
-import io.github.majusko.pulsar.service.UrlBuildService;
+import io.github.majusko.pulsar.utils.UrlBuildService;
 import org.apache.pulsar.client.api.*;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.EmbeddedValueResolverAware;
@@ -74,7 +74,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                     holder.getAnnotation().clazz()))
                 .consumerName(urlBuildService.buildPulsarConsumerName(consumerName, generatedConsumerName))
                 .subscriptionName(urlBuildService.buildPulsarSubscriptionName(subscriptionName, generatedConsumerName))
-                .topic(urlBuildService.buildTopicUrl(topicName,namespace))
+                .topic(urlBuildService.buildTopicUrl(topicName, namespace))
                 .subscriptionType(subscriptionType)
                 .subscriptionInitialPosition(holder.getAnnotation().initialPosition())
                 .messageListener((consumer, msg) -> {

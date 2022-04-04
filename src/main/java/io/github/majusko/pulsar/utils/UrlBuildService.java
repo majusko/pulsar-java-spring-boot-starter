@@ -42,6 +42,14 @@ public class UrlBuildService {
             "/" + topic;
     }
 
+    public String buildTopicUrl(String topic, String namespace) {
+        if (Strings.isNullOrEmpty(namespace)) {
+            return buildTopicUrl(topic);
+        }
+
+        return DEFAULT_PERSISTENCE + "://" + pulsarProperties.getTenant() + "/" + namespace + "/" + topic;
+    }
+
     public String buildPulsarConsumerName(String customConsumerName, String generatedConsumerName) {
         if (Strings.isNullOrEmpty(customConsumerName)) {
             return CONSUMER_NAME_PREFIX + consumerNameDelimiter + generatedConsumerName;

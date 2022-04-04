@@ -31,6 +31,7 @@ public class TestConsumers {
     public AtomicBoolean customConsumerTestReceived = new AtomicBoolean(false);
     public AtomicInteger failTwiceRetryCount = new AtomicInteger(0);
     public AtomicInteger topicOverflowDueToExceptionRetryCount = new AtomicInteger(0);
+    public AtomicBoolean customConsumerNamespaceReceived = new AtomicBoolean(false);
 
     public static final String CUSTOM_CONSUMER_NAME = "custom-consumer-name";
     public static final String CUSTOM_SUBSCRIPTION_NAME= "custom-subscription-name";
@@ -38,6 +39,7 @@ public class TestConsumers {
     public static final String CUSTOM_SUB_AND_CONSUMER_TOPIC = "custom-sub-and-consumer";
     public static final String SHARED_SUB_TEST = "shared-sub-consumer";
     public static final String EXCLUSIVE_SUB_TEST = "exclusive-sub-consumer";
+    public static final String CUSTOM_NAMESPACE_TOPIC_TEST = "default";
 
     @PulsarConsumer(topic = "topic-one", clazz = MyMsg.class, serialization = Serialization.JSON)
     public void topicOneListener(MyMsg myMsg) {
@@ -177,5 +179,16 @@ public class TestConsumers {
         Assertions.assertNotNull(myMsg);
         Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, myMsg.getData());
         subscribeToSharedTopicSubscription.set(true);
+    }
+
+    @PulsarConsumer(
+        topic = CUSTOM_NAMESPACE_TOPIC_TEST,
+        clazz = MyMsg.class,
+        subscriptionType = SubscriptionType.Exclusive,
+        namespace = "default")
+    public void customConsumerNamespace(MyMsg myMsg) {
+        Assertions.assertNotNull(myMsg);
+        Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, myMsg.getData());
+        customConsumerNamespaceReceived.set(true);
     }
 }

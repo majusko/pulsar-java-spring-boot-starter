@@ -13,7 +13,7 @@ import io.github.majusko.pulsar.reactor.FluxConsumer;
 import io.github.majusko.pulsar.reactor.FluxConsumerFactory;
 import io.github.majusko.pulsar.reactor.FluxConsumerHolder;
 import io.github.majusko.pulsar.utils.UrlBuildService;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.SubscriptionType;
@@ -169,7 +169,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
         final List<Consumer> classicConsumers = consumerAggregator.getConsumers();
         final List<Consumer> fluxConsumers = fluxConsumerFactory.getConsumers();
 
-        Assertions.assertEquals(18, classicConsumers.size() + fluxConsumers.size());
+        Assertions.assertEquals(19, classicConsumers.size() + fluxConsumers.size());
 
         final Consumer<?> consumer =
             classicConsumers.stream().filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl("topic-one"))).findFirst().orElseThrow(Exception::new);
@@ -198,9 +198,9 @@ class PulsarJavaSpringBootStarterApplicationTests {
     @Test
     void testProducerRegistration() {
 
-        final Map<String, ImmutablePair<Class<?>, Serialization>> topics = producerFactory.getTopics();
+        final Map<String, ImmutableTriple<Class<?>, Serialization, Optional<String>>> topics = producerFactory.getTopics();
 
-        Assertions.assertEquals(18, topics.size());
+        Assertions.assertEquals(19, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
@@ -377,5 +377,16 @@ class PulsarJavaSpringBootStarterApplicationTests {
         producer.send(TestFluxConsumersConfiguration.ROBUST_FLUX_TOPIC_TEST, new MyMsg(VALIDATION_STRING));
 
         await().atMost(Duration.ofSeconds(10)).until(received::get);
+    }
+
+    @Test
+    void testCustomNamespace() throws Exception  {
+        final Consumer consumer = consumerAggregator.getConsumers().stream()
+                .filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl(TestConsumers.CUSTOM_CONSUMER_TOPIC, "default")))
+                .findFirst()
+                .orElseThrow(() -> new Exception("Missing tested consumer."));
+
+        producer.send(TestConsumers.CUSTOM_CONSUMER_TOPIC, new MyMsg(VALIDATION_STRING));
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.customConsumerTestReceived.get());
     }
 }
