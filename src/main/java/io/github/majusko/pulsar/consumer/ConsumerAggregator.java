@@ -87,6 +87,8 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                         } else {
                             method.invoke(holder.getBean(), msg.getValue());
                         }
+
+                        consumer.acknowledge(msg);
                     } catch (Exception e) {
                         consumer.negativeAcknowledge(msg);
                         sink.tryEmitNext(new FailedMessage(e, consumer, msg));
