@@ -179,6 +179,7 @@ pulsar.oauth2-audience=https://broker.example.com
 - `pulsar.tenant` - Pulsar multi-tenancy support. More in [Multi Tenancy docs](https://pulsar.apache.org/docs/en/concepts-multi-tenancy/).
 - `pulsar.auto-start` - Whether the subscriptions should start on application startup. Useful in case you wish to not subscribe on some environments (dev,PoC,...).
 - `pulsar.allow-interceptor` - Whether the application should allow usage of interceptors and inject default interceptors with `DEBUG` level logging.
+- `pulsar.listener-name` - Multiple advertised listeners support - when a Pulsar cluster is deployed in the production environment, it may require to expose multiple advertised addresses for the broker. For example, when you deploy a Pulsar cluster in Kubernetes and want other clients. [Multiple advertised listeners docs](https://pulsar.apache.org/docs/en/concepts-multiple-advertised-listeners/)
 
 **Change only in case TLS is enabled** (By using `pulsar+ssl://` as `pulsar.service-url` value prefix.)
 
