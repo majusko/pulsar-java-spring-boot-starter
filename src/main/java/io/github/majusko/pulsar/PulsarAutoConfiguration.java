@@ -90,6 +90,9 @@ public class PulsarAutoConfiguration {
             pulsarClientBuilder.authentication(AuthenticationFactoryOAuth2
                 .clientCredentials(issuerUrl, credentialsUrl, pulsarProperties.getOauth2Audience()));
         }
+        if (!Strings.isNullOrEmpty(pulsarProperties.getListenerName())) {
+            pulsarClientBuilder.listenerName(pulsarProperties.getListenerName());
+        }
 
         return pulsarClientBuilder.build();
     }
