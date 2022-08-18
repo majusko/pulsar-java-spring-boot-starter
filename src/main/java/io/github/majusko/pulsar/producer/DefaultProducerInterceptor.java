@@ -1,5 +1,6 @@
 package io.github.majusko.pulsar.producer;
 
+import io.github.majusko.pulsar.metrics.Metrics;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.MessageId;
 import org.apache.pulsar.client.api.Producer;
@@ -26,6 +27,7 @@ public class DefaultProducerInterceptor implements ProducerInterceptor {
         logger.debug("[Pulsar producer log:BeforeSend] ProducerName:[{}], Topic:[{}]",
             producer.getProducerName(),
             producer.getTopic());
+        Metrics.producerPendingMessage(producer.getTopic());
         return message;
     }
 
@@ -38,6 +40,8 @@ public class DefaultProducerInterceptor implements ProducerInterceptor {
         }
         logger.debug("[Pulsar producer log:OnSendAcknowledgement] Producer:[{}], Topic:[{}] msgID:[{}]",
             producer.getProducerName(), producer.getTopic(), msgId.toString());
+        Metrics.producerPublishedMessage(producer.getTopic());
+        Metrics.producerBytesPublished(producer.getTopic(), message.getData().length);
     }
 
     @Override

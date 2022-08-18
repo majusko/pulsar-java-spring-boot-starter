@@ -1,5 +1,6 @@
 package io.github.majusko.pulsar.consumer;
 
+import io.github.majusko.pulsar.metrics.Metrics;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.ConsumerInterceptor;
 import org.apache.pulsar.client.api.Message;
@@ -21,10 +22,11 @@ public class DefaultConsumerInterceptor<T extends Object> implements ConsumerInt
     @Override
     public Message<T> beforeConsume(Consumer<T> consumer, Message<T> message) {
         logger.debug("[Pulsar consumer log:BeforeConsume] ProducerName[{}], ConsumerName:[{}], Topic:[{}], msgID:[{}]," +
-                " MessageKey:[{}], PublishTime:[{}], RedeliveryCount:[{}], GetReplicatedFrom:[{}]",
-            message.getProducerName(), consumer.getConsumerName(), message.getTopicName(), message.getMessageId(),
-            message.getKey(), message.getPublishTime(), message.getRedeliveryCount(), message.getReplicatedFrom());
+                        " MessageKey:[{}], PublishTime:[{}], RedeliveryCount:[{}], GetReplicatedFrom:[{}]",
+                message.getProducerName(), consumer.getConsumerName(), message.getTopicName(), message.getMessageId(),
+                message.getKey(), message.getPublishTime(), message.getRedeliveryCount(), message.getReplicatedFrom());
 
+        Metrics.bytesReceived(message.getTopicName(), message.getData().length);
         return message;
     }
 
@@ -34,6 +36,7 @@ public class DefaultConsumerInterceptor<T extends Object> implements ConsumerInt
             logger.debug("[Pulsar consumer log:OnAcknowledge] ConsumerName:[{}], msgID:[{}], exception:[{}]", consumer.getConsumerName(), messageId, exception);
             return;
         }
+        Metrics.acksCounter(consumer.getTopic());
         logger.debug("[Pulsar consumer log:OnAcknowledge] ConsumerName:[{}], msgID:[{}]", consumer.getConsumerName(), messageId);
     }
 
@@ -54,6 +57,7 @@ public class DefaultConsumerInterceptor<T extends Object> implements ConsumerInt
     @Override
     public void onAckTimeoutSend(Consumer<T> consumer, Set<MessageId> messageIds) {
         logger.debug("[Pulsar consumer log:OnAckTimeoutSend] ConsumerName:[{}], msgID:[{}]", consumer.getConsumerName(), messageIds);
+        Metrics.acksTimeoutCounter(consumer.getTopic());
     }
 
     @Override
