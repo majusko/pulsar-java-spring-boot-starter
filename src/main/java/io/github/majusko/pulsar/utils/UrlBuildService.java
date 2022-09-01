@@ -32,7 +32,7 @@ public class UrlBuildService {
     private final PulsarProperties pulsarProperties;
     private final ConsumerProperties consumerProperties;
 
-    private UrlBuildService(PulsarProperties pulsarProperties, ConsumerProperties consumerProperties) {
+    public UrlBuildService(PulsarProperties pulsarProperties, ConsumerProperties consumerProperties) {
         this.pulsarProperties = pulsarProperties;
         this.consumerProperties = consumerProperties;
     }
