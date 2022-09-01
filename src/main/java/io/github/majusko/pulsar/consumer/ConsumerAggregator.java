@@ -91,7 +91,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                         consumer.acknowledge(msg);
                     } catch (Exception e) {
                         consumer.negativeAcknowledge(msg);
-                        sink.tryEmitNext(new FailedMessage(e, consumer, msg));
+                        sink.tryEmitNext(new FailedMessage(e.getCause(), consumer, msg));
                     }
                 });
 
