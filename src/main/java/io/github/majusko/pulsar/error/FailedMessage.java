@@ -7,11 +7,13 @@ public class FailedMessage {
     private final Throwable exception;
     private final Consumer<?> consumer;
     private final Message<?> message;
+    private final Throwable consumerException;
 
     public FailedMessage(Throwable exception, Consumer<?> consumer, Message<?> message) {
         this.exception = exception;
         this.consumer = consumer;
         this.message = message;
+        this.consumerException = exception.getCause();
     }
 
     public Throwable getException() {
@@ -24,5 +26,9 @@ public class FailedMessage {
 
     public Message<?> getMessage() {
         return message;
+    }
+
+    public Throwable getConsumerException() {
+        return consumerException;
     }
 }

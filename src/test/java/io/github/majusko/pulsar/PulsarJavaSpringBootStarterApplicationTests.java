@@ -216,11 +216,32 @@ class PulsarJavaSpringBootStarterApplicationTests {
             Assertions.assertEquals($.getConsumer().getTopic(), urlBuildService.buildTopicUrl("topic-for-error"));
             Assertions.assertEquals($.getMessage().getValue(), messageToSend);
             Assertions.assertNotNull($.getException());
+            Assertions.assertNull($.getConsumerException());
 
             receivedError.set(true);
         });
 
         producerForError.send("topic-for-error", messageToSend);
+
+        await().untilTrue(receivedError);
+
+        disposable.dispose();
+    }
+
+    @Test
+    void testMessageError2Handling() throws PulsarClientException {
+        final AtomicBoolean receivedError = new AtomicBoolean(false);
+        final String messageToSend = "This message will never arrive.";
+        final Disposable disposable = consumerAggregator.onError(($) -> {
+            Assertions.assertEquals($.getConsumer().getTopic(), urlBuildService.buildTopicUrl("topic-for-error-2"));
+            Assertions.assertEquals($.getMessage().getValue(), messageToSend);
+            Assertions.assertNotNull($.getException());
+            Assertions.assertNotNull($.getConsumerException());
+
+            receivedError.set(true);
+        });
+
+        producerForError.send("topic-for-error-2", messageToSend);
 
         await().untilTrue(receivedError);
 
