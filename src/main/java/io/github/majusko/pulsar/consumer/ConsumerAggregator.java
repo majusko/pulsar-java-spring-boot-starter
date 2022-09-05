@@ -23,6 +23,7 @@ import reactor.util.concurrent.Queues;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -76,8 +77,9 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                 .subscriptionName(urlBuildService.buildPulsarSubscriptionName(subscriptionName, generatedConsumerName))
                 .topic(urlBuildService.buildTopicUrl(topicName, namespace))
                 .subscriptionType(subscriptionType)
-                .subscriptionInitialPosition(holder.getAnnotation().initialPosition())
-                .messageListener((consumer, msg) -> {
+                .subscriptionInitialPosition(holder.getAnnotation().initialPosition());
+            if(!holder.getAnnotation().batch())
+            	consumerBuilder.messageListener((consumer, msg) -> {
                     try {
                         final Method method = holder.getHandler();
                         method.setAccessible(true);
@@ -94,6 +96,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                         sink.tryEmitNext(new FailedMessage(e, consumer, msg));
                     }
                 });
+                
 
             if (pulsarProperties.isAllowInterceptor()) {
                 consumerBuilder.intercept(consumerInterceptor);
@@ -108,7 +111,23 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                 holder.getAnnotation().deadLetterTopic(),
                 consumerBuilder);
 
-            return consumerBuilder.subscribe();
+            final Consumer<?> subscription = consumerBuilder.subscribe();
+            if(holder.getAnnotation().batch()) {
+            	CompletableFuture<Void> cf =  CompletableFuture.runAsync(() -> {
+            		try {
+            			while (true) {
+            				Messages<?> msgs = subscription.batchReceive();
+            				final Method method = holder.getHandler();
+            				method.setAccessible(true);
+            				method.invoke(holder.getBean(), msgs);
+						}
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+            	});
+            }
+            return subscription;
         } catch (PulsarClientException | ClientInitException e) {
             throw new ConsumerInitException("Failed to init consumer.", e);
         }

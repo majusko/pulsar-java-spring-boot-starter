@@ -77,4 +77,6 @@ public @interface PulsarConsumer {
      * By default, the subscription will be created at the end of the topic (Latest).
      */
     SubscriptionInitialPosition initialPosition() default SubscriptionInitialPosition.Latest;
+    
+    boolean batch() default false;
 }
