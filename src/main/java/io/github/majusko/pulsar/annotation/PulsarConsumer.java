@@ -79,4 +79,8 @@ public @interface PulsarConsumer {
     SubscriptionInitialPosition initialPosition() default SubscriptionInitialPosition.Latest;
     
     boolean batch() default false;
+    
+    String batchAckMode() default "auto";
+    
+    
 }

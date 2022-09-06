@@ -111,23 +111,38 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                 holder.getAnnotation().deadLetterTopic(),
                 consumerBuilder);
 
-            final Consumer<?> subscription = consumerBuilder.subscribe();
+            final Consumer<?> consumer = consumerBuilder.subscribe();
             if(holder.getAnnotation().batch()) {
             	CompletableFuture<Void> cf =  CompletableFuture.runAsync(() -> {
+            		boolean retTypeVoid = true;
+            		boolean manualAckMode = false;
+            		Messages<?> msgs = null;
             		try {
+            			final Method method = holder.getHandler();
+            			method.setAccessible(true);
+            			retTypeVoid = method.getReturnType().equals(Void.TYPE);
+            			manualAckMode = holder.getAnnotation().batchAckMode().equals("manual");
             			while (true) {
-            				Messages<?> msgs = subscription.batchReceive();
-            				final Method method = holder.getHandler();
-            				method.setAccessible(true);
-            				method.invoke(holder.getBean(), msgs);
+            				msgs = consumer.batchReceive();
+            				List<MessageId> ackList = null;
+            				if(manualAckMode) {
+            					method.invoke(holder.getBean(), msgs,consumer);
+            				} else if(!retTypeVoid) {
+            					ackList = (List<MessageId>) method.invoke(holder.getBean(), msgs);
+            					consumer.acknowledge(ackList);
+            				} else {
+            					method.invoke(holder.getBean(), msgs);
+            					consumer.acknowledge(msgs);
+            				} 
 						}
 					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						if(retTypeVoid && !manualAckMode) {
+							consumer.negativeAcknowledge(msgs);
+						} 
 					}
             	});
             }
-            return subscription;
+            return consumer;
         } catch (PulsarClientException | ClientInitException e) {
             throw new ConsumerInitException("Failed to init consumer.", e);
         }
