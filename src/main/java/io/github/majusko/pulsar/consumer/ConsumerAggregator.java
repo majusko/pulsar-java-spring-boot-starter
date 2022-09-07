@@ -45,6 +45,8 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
 
     private StringValueResolver stringValueResolver;
     private List<Consumer> consumers;
+    
+    public static final String MANUAL_BATCH_ACK_MODE = "manual";
 
     public ConsumerAggregator(ConsumerCollector consumerCollector, PulsarClient pulsarClient,
                               ConsumerProperties consumerProperties, PulsarProperties pulsarProperties, UrlBuildService urlBuildService,
@@ -67,95 +69,95 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
         }
     }
 
-    private Consumer<?> subscribe(String generatedConsumerName, ConsumerHolder holder) {
-        try {
-            final String consumerName = stringValueResolver.resolveStringValue(holder.getAnnotation().consumerName());
-            final String subscriptionName = stringValueResolver.resolveStringValue(holder.getAnnotation().subscriptionName());
-            final String topicName = stringValueResolver.resolveStringValue(holder.getAnnotation().topic());
-            final String namespace = stringValueResolver.resolveStringValue(holder.getAnnotation().namespace());
-            final SubscriptionType subscriptionType = urlBuildService.getSubscriptionType(holder);
-            final ConsumerBuilder<?> consumerBuilder = pulsarClient
-                .newConsumer(SchemaUtils.getSchema(holder.getAnnotation().serialization(),
-                    holder.getAnnotation().clazz()))
-                .consumerName(urlBuildService.buildPulsarConsumerName(consumerName, generatedConsumerName))
-                .subscriptionName(urlBuildService.buildPulsarSubscriptionName(subscriptionName, generatedConsumerName))
-                .topic(urlBuildService.buildTopicUrl(topicName, namespace))
-                .subscriptionType(subscriptionType)
-                .subscriptionInitialPosition(holder.getAnnotation().initialPosition());
-            if(!holder.getAnnotation().batch())
-            	consumerBuilder.messageListener((consumer, msg) -> {
-                    try {
-                        final Method method = holder.getHandler();
-                        method.setAccessible(true);
+	private Consumer<?> subscribe(String generatedConsumerName, ConsumerHolder holder) {
+		try {
+			final String consumerName = stringValueResolver.resolveStringValue(holder.getAnnotation().consumerName());
+			final String subscriptionName = stringValueResolver
+					.resolveStringValue(holder.getAnnotation().subscriptionName());
+			final String topicName = stringValueResolver.resolveStringValue(holder.getAnnotation().topic());
+			final String namespace = stringValueResolver.resolveStringValue(holder.getAnnotation().namespace());
+			final SubscriptionType subscriptionType = urlBuildService.getSubscriptionType(holder);
+			final ConsumerBuilder<?> consumerBuilder = pulsarClient
+					.newConsumer(SchemaUtils.getSchema(holder.getAnnotation().serialization(),
+							holder.getAnnotation().clazz()))
+					.consumerName(urlBuildService.buildPulsarConsumerName(consumerName, generatedConsumerName))
+					.subscriptionName(
+							urlBuildService.buildPulsarSubscriptionName(subscriptionName, generatedConsumerName))
+					.topic(urlBuildService.buildTopicUrl(topicName, namespace)).subscriptionType(subscriptionType)
+					.subscriptionInitialPosition(holder.getAnnotation().initialPosition());
+			if (!holder.getAnnotation().batch()) {
+				consumerBuilder.messageListener((consumer, msg) -> {
+					try {
+						final Method method = holder.getHandler();
+						method.setAccessible(true);
 
-                        if (holder.isWrapped()) {
-                            method.invoke(holder.getBean(), wrapMessage(msg));
-                        } else {
-                            method.invoke(holder.getBean(), msg.getValue());
-                        }
+						if (holder.isWrapped()) {
+							method.invoke(holder.getBean(), wrapMessage(msg));
+						} else {
+							method.invoke(holder.getBean(), msg.getValue());
+						}
 
-                        consumer.acknowledge(msg);
-                    } catch (Exception e) {
-                        consumer.negativeAcknowledge(msg);
-                        sink.tryEmitNext(new FailedMessage(e, consumer, msg));
-                    }
-                });
-                
+						consumer.acknowledge(msg);
+					} catch (Exception e) {
+						consumer.negativeAcknowledge(msg);
+						sink.tryEmitNext(new FailedMessage(e, consumer, msg));
+					}
+				});
+			}
 
-            if (pulsarProperties.isAllowInterceptor()) {
-                consumerBuilder.intercept(consumerInterceptor);
-            }
+			if (pulsarProperties.isAllowInterceptor()) {
+				consumerBuilder.intercept(consumerInterceptor);
+			}
 
-            if (consumerProperties.getAckTimeoutMs() > 0) {
-                consumerBuilder.ackTimeout(consumerProperties.getAckTimeoutMs(), TimeUnit.MILLISECONDS);
-            }
+			if (consumerProperties.getAckTimeoutMs() > 0) {
+				consumerBuilder.ackTimeout(consumerProperties.getAckTimeoutMs(), TimeUnit.MILLISECONDS);
+			}
 
-            urlBuildService.buildDeadLetterPolicy(
-                holder.getAnnotation().maxRedeliverCount(),
-                holder.getAnnotation().deadLetterTopic(),
-                consumerBuilder);
+			urlBuildService.buildDeadLetterPolicy(holder.getAnnotation().maxRedeliverCount(),
+					holder.getAnnotation().deadLetterTopic(), consumerBuilder);
 
-            final Consumer<?> consumer = consumerBuilder.subscribe();
-            if(holder.getAnnotation().batch()) {
-            	CompletableFuture<Void> cf =  CompletableFuture.runAsync(() -> {
-            		boolean retTypeVoid = true;
-            		boolean manualAckMode = false;
-            		Messages<?> msgs = null;
-            		try {
-            			final Method method = holder.getHandler();
-            			method.setAccessible(true);
-            			retTypeVoid = method.getReturnType().equals(Void.TYPE);
-            			manualAckMode = holder.getAnnotation().batchAckMode().equals("manual");
-            			while (true) {
-            				msgs = consumer.batchReceive();
-            				List<MessageId> ackList = null;
-            				if(manualAckMode) {
-            					method.invoke(holder.getBean(), msgs,consumer);
-            				} else if(!retTypeVoid && !manualAckMode) {
-            					ackList = (List<MessageId>) method.invoke(holder.getBean(), msgs);
-            					consumer.acknowledge(ackList);
-            					Set<MessageId> ackSet = ackList.stream().collect(Collectors.toSet());
-            					msgs.forEach((msg) -> {
-            						if(!ackSet.contains(msg))
-            							consumer.negativeAcknowledge(msg);
-            					});
-            				} else if(!manualAckMode){
-            					method.invoke(holder.getBean(), msgs);
-            					consumer.acknowledge(msgs);
-            				} 
+			final Consumer<?> consumer = consumerBuilder.subscribe();
+			if (holder.getAnnotation().batch()) {
+				CompletableFuture<Void> cf = CompletableFuture.runAsync(() -> {
+					boolean retTypeVoid = true;
+					boolean manualAckMode = false;
+					Messages<?> msgs = null;
+					try {
+						final Method method = holder.getHandler();
+						method.setAccessible(true);
+						retTypeVoid = method.getReturnType().equals(Void.TYPE);
+						manualAckMode = holder.getAnnotation().batchAckMode().equals(MANUAL_BATCH_ACK_MODE);
+						while (true) {
+							msgs = consumer.batchReceive();
+							if (manualAckMode) {
+								method.invoke(holder.getBean(), msgs, consumer);
+							} else if (!retTypeVoid && !manualAckMode) {
+								List<MessageId> ackList = (List<MessageId>) method.invoke(holder.getBean(), msgs);
+								consumer.acknowledge(ackList);
+								Set<MessageId> ackSet = ackList.stream().collect(Collectors.toSet());
+								msgs.forEach((msg) -> {
+									if (!ackSet.contains(msg))
+										consumer.negativeAcknowledge(msg);
+								});
+							} else if (!manualAckMode) {
+								method.invoke(holder.getBean(), msgs);
+								consumer.acknowledge(msgs);
+							}
 						}
 					} catch (Exception e) {
-						if(retTypeVoid && !manualAckMode) {
-							consumer.negativeAcknowledge(msgs);
-						} 
+						if (retTypeVoid && !manualAckMode) {
+							if (msgs != null) {
+								consumer.negativeAcknowledge(msgs);
+							}
+						}
 					}
-            	});
-            }
-            return consumer;
-        } catch (PulsarClientException | ClientInitException e) {
-            throw new ConsumerInitException("Failed to init consumer.", e);
-        }
-    }
+				});
+			}
+			return consumer;
+		} catch (PulsarClientException | ClientInitException e) {
+			throw new ConsumerInitException("Failed to init consumer.", e);
+		}
+	}
 
     public <T> PulsarMessage<T> wrapMessage(Message<T> message) {
         final PulsarMessage<T> pulsarMessage = new PulsarMessage<T>();
