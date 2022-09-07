@@ -22,7 +22,11 @@ import reactor.core.publisher.Sinks;
 import reactor.util.concurrent.Queues;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -127,10 +131,15 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
             				List<MessageId> ackList = null;
             				if(manualAckMode) {
             					method.invoke(holder.getBean(), msgs,consumer);
-            				} else if(!retTypeVoid) {
+            				} else if(!retTypeVoid && !manualAckMode) {
             					ackList = (List<MessageId>) method.invoke(holder.getBean(), msgs);
             					consumer.acknowledge(ackList);
-            				} else {
+            					Set<MessageId> ackSet = ackList.stream().collect(Collectors.toSet());
+            					msgs.forEach((msg) -> {
+            						if(!ackSet.contains(msg))
+            							consumer.negativeAcknowledge(msg);
+            					});
+            				} else if(!manualAckMode){
             					method.invoke(holder.getBean(), msgs);
             					consumer.acknowledge(msgs);
             				} 
