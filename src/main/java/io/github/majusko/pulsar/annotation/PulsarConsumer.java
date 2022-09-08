@@ -82,13 +82,12 @@ public @interface PulsarConsumer {
     /**
      * Set batch receive mode to true. If set to true consumer method receives multiple messages.
      * Consumer method's parameter should be in org.apache.pulsar.client.api.Messages<?> type.   
-     * @return
      */
     boolean batch() default false;
     
     
     /**
-     * This method is only evaluated when batch attribute is set to true.
+     * This attribute is only considered when batch attribute is set to true.
      * It gives user to manually acknowledge or negative acknowledge messages.
      * When you set this attribute to BatchAckMode.MANUAL, you should acknowledge
      * messages otherwise you will duplicate process messages. You should also define
@@ -98,9 +97,40 @@ public @interface PulsarConsumer {
      * If this value set to BatchAckMode.AUTO then it will acknowledge all messages.
      * if no exception occurs. If any exception occurs or thrown then all messages would be
      * negative acknowledged.
-     * @return
      */
     BatchAckMode batchAckMode() default BatchAckMode.AUTO;
     
+    /**
+     * This attribute is only considered when batch attribute is set to true.
+     * 
+     * 1.If set maxNumMessages = 10, maxNumBytes = 1MB and without timeout, it means Consumer.batchReceive()
+     * will always wait until there is enough messages. 
+     * 
+     * 2.If set maxNumMessages = 0, maxNumBytes = 0 and timeout = 100ms, it means Consumer.batchReceive() 
+     * will waiting for 100ms whether or not there is enough messages.
+     */
+    int maxNumMessage() default -1;
+    
+    /**
+     * This attribute is only considered when batch attribute is set to true.
+     * 
+     * 1.If set maxNumMessages = 10, maxNumBytes = 1MB and without timeout, it means Consumer.batchReceive()
+     * will always wait until there is enough messages. 
+     * 
+     * 2.If set maxNumMessages = 0, maxNumBytes = 0 and timeout = 100ms, it means Consumer.batchReceive() 
+     * will waiting for 100ms whether or not there is enough messages.
+     */
+    int maxNumBytes() default 10 * 1024 * 1024;
+    
+    /**
+     * This attribute is only considered when batch attribute is set to true.
+     * 
+     * 1.If set maxNumMessages = 10, maxNumBytes = 1MB and without timeout, it means Consumer.batchReceive()
+     * will always wait until there is enough messages. 
+     * 
+     * 2.If set maxNumMessages = 0, maxNumBytes = 0 and timeout = 100ms, it means Consumer.batchReceive() 
+     * will waiting for 100ms whether or not there is enough messages.
+     */
+    int timeoutMillis() default 100;
     
 }

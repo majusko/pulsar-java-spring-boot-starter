@@ -1,5 +1,29 @@
 package io.github.majusko.pulsar.consumer;
 
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import org.apache.pulsar.client.api.BatchReceivePolicy;
+import org.apache.pulsar.client.api.Consumer;
+import org.apache.pulsar.client.api.ConsumerBuilder;
+import org.apache.pulsar.client.api.ConsumerInterceptor;
+import org.apache.pulsar.client.api.Message;
+import org.apache.pulsar.client.api.MessageId;
+import org.apache.pulsar.client.api.Messages;
+import org.apache.pulsar.client.api.PulsarClient;
+import org.apache.pulsar.client.api.PulsarClientException;
+import org.apache.pulsar.client.api.SubscriptionType;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.EmbeddedValueResolverAware;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringValueResolver;
+
 import io.github.majusko.pulsar.PulsarMessage;
 import io.github.majusko.pulsar.collector.ConsumerCollector;
 import io.github.majusko.pulsar.collector.ConsumerHolder;
@@ -11,26 +35,9 @@ import io.github.majusko.pulsar.properties.ConsumerProperties;
 import io.github.majusko.pulsar.properties.PulsarProperties;
 import io.github.majusko.pulsar.utils.SchemaUtils;
 import io.github.majusko.pulsar.utils.UrlBuildService;
-import org.apache.pulsar.client.api.*;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.EmbeddedValueResolverAware;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringValueResolver;
 import reactor.core.Disposable;
 import reactor.core.publisher.Sinks;
 import reactor.util.concurrent.Queues;
-
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Component
 @DependsOn({"pulsarClient", "consumerCollector"})
@@ -113,6 +120,13 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
 				consumerBuilder.ackTimeout(consumerProperties.getAckTimeoutMs(), TimeUnit.MILLISECONDS);
 			}
 
+			if (holder.getAnnotation().batch()) {
+				consumerBuilder.batchReceivePolicy(
+						BatchReceivePolicy.builder().maxNumMessages(holder.getAnnotation().maxNumMessage())
+								.maxNumBytes(holder.getAnnotation().maxNumBytes())
+								.timeout(holder.getAnnotation().timeoutMillis(), TimeUnit.MILLISECONDS).build());
+			}
+
 			urlBuildService.buildDeadLetterPolicy(holder.getAnnotation().maxRedeliverCount(),
 					holder.getAnnotation().deadLetterTopic(), consumerBuilder);
 
@@ -126,7 +140,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
 						final Method method = holder.getHandler();
 						method.setAccessible(true);
 						retTypeVoid = method.getReturnType().equals(Void.TYPE);
-						if(holder.getAnnotation().batchAckMode() == BatchAckMode.MANUAL) {
+						if (holder.getAnnotation().batchAckMode() == BatchAckMode.MANUAL) {
 							manualAckMode = true;
 						}
 						while (true) {
