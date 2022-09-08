@@ -1,5 +1,6 @@
 package io.github.majusko.pulsar.annotation;
 
+import io.github.majusko.pulsar.constant.BatchAckMode;
 import io.github.majusko.pulsar.constant.Serialization;
 import org.apache.pulsar.client.api.SubscriptionInitialPosition;
 import org.apache.pulsar.client.api.SubscriptionType;
@@ -78,9 +79,28 @@ public @interface PulsarConsumer {
      */
     SubscriptionInitialPosition initialPosition() default SubscriptionInitialPosition.Latest;
     
+    /**
+     * Set batch receive mode to true. If set to true consumer method receives multiple messages.
+     * Consumer method's parameter should be in org.apache.pulsar.client.api.Messages<?> type.   
+     * @return
+     */
     boolean batch() default false;
     
-    String batchAckMode() default "auto";
+    
+    /**
+     * This method is only evaluated when batch attribute is set to true.
+     * It gives user to manually acknowledge or negative acknowledge messages.
+     * When you set this attribute to BatchAckMode.MANUAL, you should acknowledge
+     * messages otherwise you will duplicate process messages. You should also define
+     * your a second parameter of org.apache.pulsar.client.api.Consumer<?> type. You
+     * will use Consumer object to give acknowledge or negative acknowledge.
+     * 
+     * If this value set to BatchAckMode.AUTO then it will acknowledge all messages.
+     * if no exception occurs. If any exception occurs or thrown then all messages would be
+     * negative acknowledged.
+     * @return
+     */
+    BatchAckMode batchAckMode() default BatchAckMode.AUTO;
     
     
 }

@@ -3,6 +3,7 @@ package io.github.majusko.pulsar.consumer;
 import io.github.majusko.pulsar.PulsarMessage;
 import io.github.majusko.pulsar.collector.ConsumerCollector;
 import io.github.majusko.pulsar.collector.ConsumerHolder;
+import io.github.majusko.pulsar.constant.BatchAckMode;
 import io.github.majusko.pulsar.error.FailedMessage;
 import io.github.majusko.pulsar.error.exception.ClientInitException;
 import io.github.majusko.pulsar.error.exception.ConsumerInitException;
@@ -46,7 +47,6 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
     private StringValueResolver stringValueResolver;
     private List<Consumer> consumers;
     
-    public static final String MANUAL_BATCH_ACK_MODE = "manual";
 
     public ConsumerAggregator(ConsumerCollector consumerCollector, PulsarClient pulsarClient,
                               ConsumerProperties consumerProperties, PulsarProperties pulsarProperties, UrlBuildService urlBuildService,
@@ -126,15 +126,17 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
 						final Method method = holder.getHandler();
 						method.setAccessible(true);
 						retTypeVoid = method.getReturnType().equals(Void.TYPE);
-						manualAckMode = holder.getAnnotation().batchAckMode().equals(MANUAL_BATCH_ACK_MODE);
+						if(holder.getAnnotation().batchAckMode() == BatchAckMode.MANUAL) {
+							manualAckMode = true;
+						}
 						while (true) {
 							msgs = consumer.batchReceive();
 							if (manualAckMode) {
 								method.invoke(holder.getBean(), msgs, consumer);
 							} else if (!retTypeVoid && !manualAckMode) {
-								List<MessageId> ackList = (List<MessageId>) method.invoke(holder.getBean(), msgs);
+								final List<MessageId> ackList = (List<MessageId>) method.invoke(holder.getBean(), msgs);
+								final Set<MessageId> ackSet = ackList.stream().collect(Collectors.toSet());
 								consumer.acknowledge(ackList);
-								Set<MessageId> ackSet = ackList.stream().collect(Collectors.toSet());
 								msgs.forEach((msg) -> {
 									if (!ackSet.contains(msg))
 										consumer.negativeAcknowledge(msg);
