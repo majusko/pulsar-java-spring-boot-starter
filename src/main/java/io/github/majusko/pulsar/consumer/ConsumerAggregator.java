@@ -175,10 +175,8 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
 					}
 				}
 			} catch (Exception e) {
-				if (retTypeVoid && !manualAckMode) {
-					if (msgs != null) {
-						consumer.negativeAcknowledge(msgs);
-					}
+				if (retTypeVoid && !manualAckMode && msgs != null) {
+					consumer.negativeAcknowledge(msgs);
 				}
 				batchSink.tryEmitNext(new FailedMessages(e, consumer, msgs));
 			}
