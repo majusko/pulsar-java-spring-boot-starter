@@ -1,6 +1,7 @@
 package io.github.majusko.pulsar.consumer;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -54,6 +55,8 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
     private StringValueResolver stringValueResolver;
     private List<Consumer> consumers;
     
+    private List<CompletableFuture<?>> batchListenerList;
+    
 
     public ConsumerAggregator(ConsumerCollector consumerCollector, PulsarClient pulsarClient,
                               ConsumerProperties consumerProperties, PulsarProperties pulsarProperties, UrlBuildService urlBuildService,
@@ -64,6 +67,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
         this.pulsarProperties = pulsarProperties;
         this.urlBuildService = urlBuildService;
         this.consumerInterceptor = consumerInterceptor;
+        this.batchListenerList = new ArrayList<>();
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -132,47 +136,52 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
 
 			final Consumer<?> consumer = consumerBuilder.subscribe();
 			if (holder.getAnnotation().batch()) {
-				CompletableFuture<Void> cf = CompletableFuture.runAsync(() -> {
-					boolean retTypeVoid = true;
-					boolean manualAckMode = false;
-					Messages<?> msgs = null;
-					try {
-						final Method method = holder.getHandler();
-						method.setAccessible(true);
-						retTypeVoid = method.getReturnType().equals(Void.TYPE);
-						if (holder.getAnnotation().batchAckMode() == BatchAckMode.MANUAL) {
-							manualAckMode = true;
-						}
-						while (true) {
-							msgs = consumer.batchReceive();
-							if (manualAckMode) {
-								method.invoke(holder.getBean(), msgs, consumer);
-							} else if (!retTypeVoid && !manualAckMode) {
-								final List<MessageId> ackList = (List<MessageId>) method.invoke(holder.getBean(), msgs);
-								final Set<MessageId> ackSet = ackList.stream().collect(Collectors.toSet());
-								consumer.acknowledge(ackList);
-								msgs.forEach((msg) -> {
-									if (!ackSet.contains(msg))
-										consumer.negativeAcknowledge(msg);
-								});
-							} else if (!manualAckMode) {
-								method.invoke(holder.getBean(), msgs);
-								consumer.acknowledge(msgs);
-							}
-						}
-					} catch (Exception e) {
-						if (retTypeVoid && !manualAckMode) {
-							if (msgs != null) {
-								consumer.negativeAcknowledge(msgs);
-							}
-						}
-					}
-				});
+				createBatchListener(holder, consumer);
 			}
 			return consumer;
 		} catch (PulsarClientException | ClientInitException e) {
 			throw new ConsumerInitException("Failed to init consumer.", e);
 		}
+	}
+
+	private void createBatchListener(ConsumerHolder holder, final Consumer<?> consumer) {
+		CompletableFuture<Void> cf = CompletableFuture.runAsync(() -> {
+			boolean retTypeVoid = true;
+			boolean manualAckMode = false;
+			Messages<?> msgs = null;
+			try {
+				final Method method = holder.getHandler();
+				method.setAccessible(true);
+				retTypeVoid = method.getReturnType().equals(Void.TYPE);
+				if (holder.getAnnotation().batchAckMode() == BatchAckMode.MANUAL) {
+					manualAckMode = true;
+				}
+				while (true) {
+					msgs = consumer.batchReceive();
+					if (manualAckMode) {
+						method.invoke(holder.getBean(), msgs, consumer);
+					} else if (!retTypeVoid && !manualAckMode) {
+						final List<MessageId> ackList = (List<MessageId>) method.invoke(holder.getBean(), msgs);
+						final Set<MessageId> ackSet = ackList.stream().collect(Collectors.toSet());
+						consumer.acknowledge(ackList);
+						msgs.forEach((msg) -> {
+							if (!ackSet.contains(msg))
+								consumer.negativeAcknowledge(msg);
+						});
+					} else if (!manualAckMode) {
+						method.invoke(holder.getBean(), msgs);
+						consumer.acknowledge(msgs);
+					}
+				}
+			} catch (Exception e) {
+				if (retTypeVoid && !manualAckMode) {
+					if (msgs != null) {
+						consumer.negativeAcknowledge(msgs);
+					}
+				}
+			}
+		});
+		batchListenerList.add(cf);
 	}
 
     public <T> PulsarMessage<T> wrapMessage(Message<T> message) {
@@ -194,8 +203,12 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
     public List<Consumer> getConsumers() {
         return consumers;
     }
+    
+    public List<CompletableFuture<?>> getBatchListenerList() {
+		return batchListenerList;
+	}
 
-    public Disposable onError(java.util.function.Consumer<? super FailedMessage> consumer) {
+	public Disposable onError(java.util.function.Consumer<? super FailedMessage> consumer) {
         return sink.asFlux().subscribe(consumer);
     }
 
