@@ -80,69 +80,68 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
         }
     }
 
-	private Consumer<?> subscribe(String generatedConsumerName, ConsumerHolder holder) {
-		try {
-			final String consumerName = stringValueResolver.resolveStringValue(holder.getAnnotation().consumerName());
-			final String subscriptionName = stringValueResolver
-					.resolveStringValue(holder.getAnnotation().subscriptionName());
-			final String topicName = stringValueResolver.resolveStringValue(holder.getAnnotation().topic());
-			final String namespace = stringValueResolver.resolveStringValue(holder.getAnnotation().namespace());
-			final SubscriptionType subscriptionType = urlBuildService.getSubscriptionType(holder);
-			final ConsumerBuilder<?> consumerBuilder = pulsarClient
-					.newConsumer(SchemaUtils.getSchema(holder.getAnnotation().serialization(),
-							holder.getAnnotation().clazz()))
-					.consumerName(urlBuildService.buildPulsarConsumerName(consumerName, generatedConsumerName))
-					.subscriptionName(
-							urlBuildService.buildPulsarSubscriptionName(subscriptionName, generatedConsumerName))
-					.topic(urlBuildService.buildTopicUrl(topicName, namespace)).subscriptionType(subscriptionType)
-					.subscriptionInitialPosition(holder.getAnnotation().initialPosition());
-			if (!holder.getAnnotation().batch()) {
-				consumerBuilder.messageListener((consumer, msg) -> {
-					try {
-						final Method method = holder.getHandler();
-						method.setAccessible(true);
+    private Consumer<?> subscribe(String generatedConsumerName, ConsumerHolder holder) {
+        try {
+            final String consumerName = stringValueResolver.resolveStringValue(holder.getAnnotation().consumerName());
+            final String subscriptionName = stringValueResolver.resolveStringValue(holder.getAnnotation().subscriptionName());
+            final String topicName = stringValueResolver.resolveStringValue(holder.getAnnotation().topic());
+            final String namespace = stringValueResolver.resolveStringValue(holder.getAnnotation().namespace());
+            final SubscriptionType subscriptionType = urlBuildService.getSubscriptionType(holder);
+            final ConsumerBuilder<?> consumerBuilder = pulsarClient
+                    .newConsumer(SchemaUtils.getSchema(holder.getAnnotation().serialization(),
+                            holder.getAnnotation().clazz()))
+                    .consumerName(urlBuildService.buildPulsarConsumerName(consumerName, generatedConsumerName))
+                    .subscriptionName(urlBuildService.buildPulsarSubscriptionName(subscriptionName, generatedConsumerName))
+                    .topic(urlBuildService.buildTopicUrl(topicName, namespace))
+                    .subscriptionType(subscriptionType)
+                    .subscriptionInitialPosition(holder.getAnnotation().initialPosition());
+            if (!holder.getAnnotation().batch()) {
+                consumerBuilder.messageListener((consumer, msg) -> {
+                    try {
+                        final Method method = holder.getHandler();
+                        method.setAccessible(true);
 
-						if (holder.isWrapped()) {
-							method.invoke(holder.getBean(), wrapMessage(msg));
-						} else {
-							method.invoke(holder.getBean(), msg.getValue());
-						}
+                        if (holder.isWrapped()) {
+                            method.invoke(holder.getBean(), wrapMessage(msg));
+                        } else {
+                            method.invoke(holder.getBean(), msg.getValue());
+                        }
 
-						consumer.acknowledge(msg);
-					} catch (Exception e) {
-						consumer.negativeAcknowledge(msg);
-						sink.tryEmitNext(new FailedMessage(e, consumer, msg));
-					}
-				});
-			}
+                        consumer.acknowledge(msg);
+                    } catch (Exception e) {
+                        consumer.negativeAcknowledge(msg);
+                        sink.tryEmitNext(new FailedMessage(e, consumer, msg));
+                    }
+                });
+            }
 
-			if (pulsarProperties.isAllowInterceptor()) {
-				consumerBuilder.intercept(consumerInterceptor);
-			}
+            if (pulsarProperties.isAllowInterceptor()) {
+                consumerBuilder.intercept(consumerInterceptor);
+            }
 
-			if (consumerProperties.getAckTimeoutMs() > 0) {
-				consumerBuilder.ackTimeout(consumerProperties.getAckTimeoutMs(), TimeUnit.MILLISECONDS);
-			}
+            if (consumerProperties.getAckTimeoutMs() > 0) {
+                consumerBuilder.ackTimeout(consumerProperties.getAckTimeoutMs(), TimeUnit.MILLISECONDS);
+            }
 
-			if (holder.getAnnotation().batch()) {
-				consumerBuilder.batchReceivePolicy(
-						BatchReceivePolicy.builder().maxNumMessages(holder.getAnnotation().maxNumMessage())
-								.maxNumBytes(holder.getAnnotation().maxNumBytes())
-								.timeout(holder.getAnnotation().timeoutMillis(), TimeUnit.MILLISECONDS).build());
-			}
+            if (holder.getAnnotation().batch()) {
+                consumerBuilder.batchReceivePolicy(
+                        BatchReceivePolicy.builder().maxNumMessages(holder.getAnnotation().maxNumMessage())
+                                .maxNumBytes(holder.getAnnotation().maxNumBytes())
+                                .timeout(holder.getAnnotation().timeoutMillis(), TimeUnit.MILLISECONDS).build());
+            }
 
-			urlBuildService.buildDeadLetterPolicy(holder.getAnnotation().maxRedeliverCount(),
-					holder.getAnnotation().deadLetterTopic(), consumerBuilder);
+            urlBuildService.buildDeadLetterPolicy(holder.getAnnotation().maxRedeliverCount(),
+                    holder.getAnnotation().deadLetterTopic(), consumerBuilder);
 
-			final Consumer<?> consumer = consumerBuilder.subscribe();
-			if (holder.getAnnotation().batch()) {
-				createBatchListener(holder, consumer);
-			}
-			return consumer;
-		} catch (PulsarClientException | ClientInitException e) {
-			throw new ConsumerInitException("Failed to init consumer.", e);
-		}
-	}
+            final Consumer<?> consumer = consumerBuilder.subscribe();
+            if (holder.getAnnotation().batch()) {
+                createBatchListener(holder, consumer);
+            }
+            return consumer;
+        } catch (PulsarClientException | ClientInitException e) {
+            throw new ConsumerInitException("Failed to init consumer.", e);
+        }
+    }
 
 	private void createBatchListener(ConsumerHolder holder, final Consumer<?> consumer) {
 		CompletableFuture<Void> cf = CompletableFuture.runAsync(() -> {
