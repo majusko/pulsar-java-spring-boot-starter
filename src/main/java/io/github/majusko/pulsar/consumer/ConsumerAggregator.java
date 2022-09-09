@@ -30,6 +30,7 @@ import io.github.majusko.pulsar.collector.ConsumerCollector;
 import io.github.majusko.pulsar.collector.ConsumerHolder;
 import io.github.majusko.pulsar.constant.BatchAckMode;
 import io.github.majusko.pulsar.error.FailedMessage;
+import io.github.majusko.pulsar.error.FailedMessages;
 import io.github.majusko.pulsar.error.exception.ClientInitException;
 import io.github.majusko.pulsar.error.exception.ConsumerInitException;
 import io.github.majusko.pulsar.properties.ConsumerProperties;
@@ -45,6 +46,7 @@ import reactor.util.concurrent.Queues;
 public class ConsumerAggregator implements EmbeddedValueResolverAware {
 
     private final Sinks.Many<FailedMessage> sink = Sinks.many().multicast().onBackpressureBuffer(Queues.SMALL_BUFFER_SIZE, false);
+    private final Sinks.Many<FailedMessages> batchSink = Sinks.many().multicast().onBackpressureBuffer(Queues.SMALL_BUFFER_SIZE, false);
     private final ConsumerCollector consumerCollector;
     private final PulsarClient pulsarClient;
     private final ConsumerProperties consumerProperties;
@@ -178,6 +180,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
 						consumer.negativeAcknowledge(msgs);
 					}
 				}
+				batchSink.tryEmitNext(new FailedMessages(e, consumer, msgs));
 			}
 		});
 		batchListenerList.add(cf);
