@@ -389,4 +389,45 @@ class PulsarJavaSpringBootStarterApplicationTests {
         producer.send(TestConsumers.CUSTOM_NAMESPACE_TOPIC, new MyMsg(VALIDATION_STRING));
         await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.customConsumerNamespaceReceived.get());
     }
+    
+    @Test
+    void testBatchConsumerWithAutoAck() throws Exception  {
+        final Consumer consumer = consumerAggregator.getConsumers().stream()
+                .filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl(TestConsumers.CUSTOM_BATCH_CONSUMER_TOPIC_AUTO_ACK, "default")))
+                .findFirst()
+                .orElseThrow(() -> new Exception("Missing tested consumer."));
+        for(int i = 0; i<10;i++) {
+            producer.send(TestConsumers.CUSTOM_BATCH_CONSUMER_TOPIC_AUTO_ACK, new MyMsg(VALIDATION_STRING));
+        }
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.batchMessageWithAutoAckReceived.get());
+        Assertions.assertEquals(consumer.getStats().getNumAcksSent(),10); 
+    }
+    
+    @Test
+    void testBatchConsumerWithAckList() throws Exception  {
+        final Consumer consumer = consumerAggregator.getConsumers().stream()
+                .filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl(TestConsumers.CUSTOM_BATCH_CONSUMER_TOPIC_ACK_FROM_LIST, "default")))
+                .findFirst()
+                .orElseThrow(() -> new Exception("Missing tested consumer."));
+        for(int i = 0; i<10;i++) {
+            producer.send(TestConsumers.CUSTOM_BATCH_CONSUMER_TOPIC_ACK_FROM_LIST, new MyMsg(VALIDATION_STRING));
+        }
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.batchMessageWithAckListReceived.get());
+        Assertions.assertEquals(consumer.getStats().getNumAcksSent(),10); 
+    }
+    
+    @Test
+    void testBatchConsumerWithManualAck() throws Exception  {
+        final Consumer consumer = consumerAggregator.getConsumers().stream()
+                .filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl(TestConsumers.CUSTOM_BATCH_CONSUMER_TOPIC_MANUAL_ACK, "default")))
+                .findFirst()
+                .orElseThrow(() -> new Exception("Missing tested consumer."));
+        for(int i = 0; i<10;i++) {
+            producer.send(TestConsumers.CUSTOM_BATCH_CONSUMER_TOPIC_MANUAL_ACK, new MyMsg(VALIDATION_STRING));
+        }
+        await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.batchMessageWithManualAckReceived.get());
+        Assertions.assertEquals(consumer.getStats().getNumAcksSent(),10); 
+    }
+    
+    
 }
