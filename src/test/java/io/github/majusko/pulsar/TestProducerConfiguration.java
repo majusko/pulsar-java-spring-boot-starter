@@ -33,6 +33,9 @@ public class TestProducerConfiguration {
             .addProducer(TestConsumers.EXCLUSIVE_SUB_TEST, MyMsg.class)
             .addProducer(TestConsumers.CUSTOM_CONSUMER_TOPIC, MyMsg.class)
             .addProducer(TestFluxConsumersConfiguration.BASIC_FLUX_TOPIC_TEST, MyMsg.class)
-            .addProducer(TestFluxConsumersConfiguration.ROBUST_FLUX_TOPIC_TEST, MyMsg.class);
+            .addProducer(TestFluxConsumersConfiguration.ROBUST_FLUX_TOPIC_TEST, MyMsg.class)
+            .addProducer(TestConsumers.CUSTOM_BATCH_CONSUMER_TOPIC_AUTO_ACK, MyMsg.class)
+            .addProducer(TestConsumers.CUSTOM_BATCH_CONSUMER_TOPIC_ACK_FROM_LIST, MyMsg.class)
+            .addProducer(TestConsumers.CUSTOM_BATCH_CONSUMER_TOPIC_MANUAL_ACK, MyMsg.class);
     }
 }

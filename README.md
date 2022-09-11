@@ -88,8 +88,84 @@ class MyConsumer {
     }
 }
 ```
+#### 5. Configure Batch Consumer
+Annotate your service method with `@PulsarConsumer` annotation and set batch attribute to `true`.
 
-#### 5. Minimal Configuration
+```java
+@Service
+class MyBatchConsumer {
+    
+    @PulsarConsumer(topic = "my-topic",
+            clazz=MyMsg.class,
+            consumerName = "my-consumer",
+            subscriptionName = "my-subscription",
+            batch = true)
+    public void consumeString(Messages<MyMsg> msgs) {
+    		msgs.forEach((msg) -> {
+    				System.out.println(msg);
+    		});
+    	}
+    		
+}
+```
+#### 6. Configure Batch Consumer With Messages To Be Acknowledged From Returned List
+Annotate your service method with `@PulsarConsumer` annotation and set batch attribute to `true`.
+Return a list from your consumer method, which contains MessageId's to be acknowledged.
+
+```java
+@Service
+class MyBatchConsumer {
+    
+    @PulsarConsumer(topic = "my-topic",
+            clazz=MyMsg.class,
+            consumerName = "my-consumer",
+            subscriptionName = "my-subscription",
+            batch = true)
+    public List<MessageId> consumeString(Messages<MyMsg> msgs) {
+    		List<MessageId> ackList = new ArrayList<>();
+    		msgs.forEach((msg) -> {
+    				System.out.println(msg);
+    				ackList.add(msg.getMessageId());
+    		});
+    		return ackList;
+    	}
+    		
+}
+```
+#### 7. Configure Batch Consumer With Manual Acknowledge Control
+Annotate your service method with `@PulsarConsumer` annotation. Set batch attribute to `true` and 
+set batchAckMode attribute to `BatchAckMode.MANUAL`. Your consumer method should contain one more parameter
+of type Consumer.
+
+```java
+@Service
+class MyBatchConsumer {
+    
+    @PulsarConsumer(topic = "my-topic",
+            clazz=MyMsg.class,
+            consumerName = "my-consumer",
+            subscriptionName = "my-subscription",
+            batch = true,
+            batchAckMode = BatchAckMode.MANUAL)
+    public void consumeString(Messages<MyMsg> msgs,Consumer<MyMsg> consumer) {
+    			List<MessageId> ackList = new ArrayList<>();
+	    		msgs.forEach((msg) -> {
+	    			try {
+	    				System.out.println(msg);
+	    				ackList.add(msg.getMessageId());
+	    			} catch (Exception ex) {
+		    			System.err.println(ex.getMessage());
+	    				consumer.negativeAcknowledge(msg);
+		    		}
+	    		});
+	    		consumer.acknowledge(ackList);
+	}
+    		
+}
+```
+
+
+#### 8. Minimal Configuration
 
 ```properties
 
