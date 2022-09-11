@@ -67,7 +67,7 @@ public class TestConsumers {
 
     @PulsarConsumer(topic = "topic-for-error-2", clazz = String.class, serialization = Serialization.JSON)
     public void topicForError2Listener(String myMsg) throws Exception {
-        throw new NullPointerException("Random exception");
+        throw new MyCustomException("Random exception");
     }
 
     @PulsarConsumer(topic = "topic-avro", clazz = AvroMsg.class, serialization = Serialization.AVRO)
