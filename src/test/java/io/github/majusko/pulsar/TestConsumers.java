@@ -1,15 +1,22 @@
 package io.github.majusko.pulsar;
 
 import io.github.majusko.pulsar.annotation.PulsarConsumer;
+import io.github.majusko.pulsar.constant.BatchAckMode;
 import io.github.majusko.pulsar.constant.Serialization;
 import io.github.majusko.pulsar.msg.AvroMsg;
 import io.github.majusko.pulsar.msg.MyMsg;
 import io.github.majusko.pulsar.msg.ProtoMsg;
+
+import org.apache.pulsar.client.api.Consumer;
+import org.apache.pulsar.client.api.MessageId;
+import org.apache.pulsar.client.api.Messages;
 import org.apache.pulsar.client.api.SubscriptionType;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -32,6 +39,10 @@ public class TestConsumers {
     public AtomicInteger failTwiceRetryCount = new AtomicInteger(0);
     public AtomicInteger topicOverflowDueToExceptionRetryCount = new AtomicInteger(0);
     public AtomicBoolean customConsumerNamespaceReceived = new AtomicBoolean(false);
+    public AtomicBoolean batchMessageWithAutoAckReceived = new AtomicBoolean(false);
+    public AtomicBoolean batchMessageWithAckListReceived = new AtomicBoolean(false);
+    public AtomicBoolean batchMessageWithManualAckReceived = new AtomicBoolean(false);
+    
 
     public static final String CUSTOM_CONSUMER_NAME = "custom-consumer-name";
     public static final String CUSTOM_SUBSCRIPTION_NAME= "custom-subscription-name";
@@ -40,6 +51,9 @@ public class TestConsumers {
     public static final String SHARED_SUB_TEST = "shared-sub-consumer";
     public static final String EXCLUSIVE_SUB_TEST = "exclusive-sub-consumer";
     public static final String CUSTOM_NAMESPACE_TOPIC = "custom-namespace-name";
+    public static final String CUSTOM_BATCH_CONSUMER_TOPIC_AUTO_ACK = "custom-batch-consumer-auto-ack-topic";
+    public static final String CUSTOM_BATCH_CONSUMER_TOPIC_ACK_FROM_LIST = "custom-batch-consumer-auto-ack-list-topic";
+    public static final String CUSTOM_BATCH_CONSUMER_TOPIC_MANUAL_ACK = "custom-batch-consumer-manual-ack-topic";
 
     @PulsarConsumer(topic = "topic-one", clazz = MyMsg.class, serialization = Serialization.JSON)
     public void topicOneListener(MyMsg myMsg) {
@@ -190,5 +204,69 @@ public class TestConsumers {
         Assertions.assertNotNull(myMsg);
         Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, myMsg.getData());
         customConsumerNamespaceReceived.set(true);
+    }
+    
+    @PulsarConsumer(
+            topic = CUSTOM_BATCH_CONSUMER_TOPIC_AUTO_ACK,
+            clazz = MyMsg.class,
+            subscriptionType = SubscriptionType.Shared,
+            batch = true,
+            maxNumMessage = 10,
+            timeoutMillis = 10000
+            )
+        public void batchConsumerAutoAck(Messages<MyMsg> msgs) {
+            Assertions.assertNotNull(msgs);
+            Assertions.assertEquals(msgs.size(),10);
+            msgs.forEach((msg) -> {
+                System.out.println(msg.getValue());
+                Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, msg.getValue().getData());
+            });
+            
+            batchMessageWithAutoAckReceived.set(true);
+    }
+    
+    @PulsarConsumer(
+            topic =CUSTOM_BATCH_CONSUMER_TOPIC_ACK_FROM_LIST,
+            clazz = MyMsg.class,
+            subscriptionType = SubscriptionType.Shared,
+            batch = true,
+            maxNumMessage = 10,
+            timeoutMillis = 10000
+            )
+        public List<MessageId> batchConsumerAutoAckFromList(Messages<MyMsg> msgs) {
+            Assertions.assertNotNull(msgs);
+            Assertions.assertEquals(msgs.size(),10);
+            List<MessageId> ackList = new ArrayList<>();
+            int i = 0;
+            msgs.forEach((msg) -> {
+                Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, msg.getValue().getData());
+                ackList.add(msg.getMessageId());
+            });
+            batchMessageWithAckListReceived.set(true);
+            return ackList;
+    }    
+    
+    @PulsarConsumer(
+            topic =CUSTOM_BATCH_CONSUMER_TOPIC_MANUAL_ACK,
+            clazz = MyMsg.class,
+            subscriptionType = SubscriptionType.Shared,
+            batch = true,
+            batchAckMode = BatchAckMode.MANUAL,
+            maxNumMessage = 10,
+            timeoutMillis = 10000
+            )
+        public void batchConsumerManualAck(Messages<MyMsg> msgs,Consumer<MyMsg> consumer) {
+            Assertions.assertNotNull(msgs);
+            Assertions.assertEquals(msgs.size(),10);
+            int i = 0;
+            msgs.forEach((msg) -> {
+                Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, msg.getValue().getData());
+                try {
+                    consumer.acknowledge(msg.getMessageId());
+                } catch (Exception e) {
+                   e.printStackTrace();
+                }
+            });
+            batchMessageWithManualAckReceived.set(true);
     }
 }
