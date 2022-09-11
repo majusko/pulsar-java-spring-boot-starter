@@ -169,7 +169,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
         final List<Consumer> classicConsumers = consumerAggregator.getConsumers();
         final List<Consumer> fluxConsumers = fluxConsumerFactory.getConsumers();
 
-        Assertions.assertEquals(22, classicConsumers.size() + fluxConsumers.size());
+        Assertions.assertEquals(23, classicConsumers.size() + fluxConsumers.size());
 
         final Consumer<?> consumer =
             classicConsumers.stream().filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl("topic-one"))).findFirst().orElseThrow(Exception::new);
@@ -200,7 +200,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
         final Map<String, ImmutableTriple<Class<?>, Serialization, Optional<String>>> topics = producerFactory.getTopics();
 
-        Assertions.assertEquals(22, topics.size());
+        Assertions.assertEquals(23, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
