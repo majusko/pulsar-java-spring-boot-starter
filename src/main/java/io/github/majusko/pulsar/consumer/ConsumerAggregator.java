@@ -1,5 +1,8 @@
 package io.github.majusko.pulsar.consumer;
 
+
+import com.google.common.base.Stopwatch;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +28,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringValueResolver;
 
+
 import io.github.majusko.pulsar.PulsarMessage;
 import io.github.majusko.pulsar.collector.ConsumerCollector;
 import io.github.majusko.pulsar.collector.ConsumerHolder;
@@ -33,6 +37,7 @@ import io.github.majusko.pulsar.error.FailedMessage;
 import io.github.majusko.pulsar.error.FailedBatchMessages;
 import io.github.majusko.pulsar.error.exception.ClientInitException;
 import io.github.majusko.pulsar.error.exception.ConsumerInitException;
+import io.github.majusko.pulsar.metrics.Metrics;
 import io.github.majusko.pulsar.properties.ConsumerProperties;
 import io.github.majusko.pulsar.properties.PulsarProperties;
 import io.github.majusko.pulsar.utils.SchemaUtils;
@@ -88,6 +93,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
             final String topicName = stringValueResolver.resolveStringValue(holder.getAnnotation().topic());
             final String namespace = stringValueResolver.resolveStringValue(holder.getAnnotation().namespace());
             final SubscriptionType subscriptionType = urlBuildService.getSubscriptionType(holder);
+            Metrics.consumersOpened(topicName);
             final ConsumerBuilder<?> consumerBuilder = pulsarClient
                     .newConsumer(SchemaUtils.getSchema(holder.getAnnotation().serialization(),
                             holder.getAnnotation().clazz()))
@@ -101,15 +107,17 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                     try {
                         final Method method = holder.getHandler();
                         method.setAccessible(true);
+                        Stopwatch stopwatch = Stopwatch.createStarted();
 
                         if (holder.isWrapped()) {
                             method.invoke(holder.getBean(), wrapMessage(msg));
                         } else {
                             method.invoke(holder.getBean(), msg.getValue());
                         }
-
+                        Metrics.consumerSuccess(consumer.getTopic(), stopwatch.elapsed());
                         consumer.acknowledge(msg);
                     } catch (Exception e) {
+                        Metrics.consumerFail(consumer.getTopic());
                         consumer.negativeAcknowledge(msg);
                         sink.tryEmitNext(new FailedMessage(e, consumer, msg));
                     }

@@ -2,6 +2,7 @@ package io.github.majusko.pulsar.producer;
 
 import io.github.majusko.pulsar.annotation.PulsarProducer;
 import io.github.majusko.pulsar.constant.Serialization;
+import io.github.majusko.pulsar.metrics.Metrics;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 
 import java.util.HashMap;
@@ -36,7 +37,9 @@ public class ProducerFactory implements PulsarProducerFactory {
         return this;
     }
 
+    @Override
     public Map<String, ImmutableTriple<Class<?>, Serialization, Optional<String>>> getTopics() {
+        topics.keySet().forEach(Metrics::producerOpened);
         return topics;
     }
 }
