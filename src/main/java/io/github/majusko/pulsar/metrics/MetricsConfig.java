@@ -6,22 +6,9 @@ import io.github.majusko.pulsar.utils.UrlBuildService;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-
 @Configuration
 public class MetricsConfig {
-    @Resource
-    private MeterRegistry meterRegistry;
-
-    @Resource
-    private PulsarProperties pulsarProperties;
-
-    @Resource
-    private UrlBuildService urlBuildService;
-
-    @PostConstruct
-    private void init() {
+    public MetricsConfig(MeterRegistry meterRegistry, PulsarProperties pulsarProperties, UrlBuildService urlBuildService) {
         Metrics.setMetrics(meterRegistry, pulsarProperties, urlBuildService);
     }
 }
