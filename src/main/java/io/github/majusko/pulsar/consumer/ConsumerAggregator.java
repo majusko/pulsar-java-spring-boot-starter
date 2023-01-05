@@ -4,13 +4,12 @@ package io.github.majusko.pulsar.consumer;
 import com.google.common.base.Stopwatch;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import io.github.majusko.pulsar.annotation.SubscriptionProp;
 import org.apache.pulsar.client.api.BatchReceivePolicy;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.ConsumerBuilder;
@@ -122,6 +121,11 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
                         sink.tryEmitNext(new FailedMessage(e, consumer, msg));
                     }
                 });
+            }
+
+            if(holder.getAnnotation().subscriptionProperties().length > 0) {
+                consumerBuilder.subscriptionProperties(Arrays.stream(holder.getAnnotation().subscriptionProperties())
+                    .collect(Collectors.toMap(SubscriptionProp::key, SubscriptionProp::value)));
             }
 
             if (pulsarProperties.isAllowInterceptor()) {

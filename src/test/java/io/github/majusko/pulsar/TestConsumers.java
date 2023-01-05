@@ -1,6 +1,7 @@
 package io.github.majusko.pulsar;
 
 import io.github.majusko.pulsar.annotation.PulsarConsumer;
+import io.github.majusko.pulsar.annotation.SubscriptionProp;
 import io.github.majusko.pulsar.constant.BatchAckMode;
 import io.github.majusko.pulsar.constant.Serialization;
 import io.github.majusko.pulsar.msg.AvroMsg;
@@ -42,7 +43,8 @@ public class TestConsumers {
     public AtomicBoolean batchMessageWithAutoAckReceived = new AtomicBoolean(false);
     public AtomicBoolean batchMessageWithAckListReceived = new AtomicBoolean(false);
     public AtomicBoolean batchMessageWithManualAckReceived = new AtomicBoolean(false);
-    
+
+    public AtomicBoolean subscriptionPropertiesReceived = new AtomicBoolean(false);
 
     public static final String CUSTOM_CONSUMER_NAME = "custom-consumer-name";
     public static final String CUSTOM_SUBSCRIPTION_NAME= "custom-subscription-name";
@@ -54,6 +56,12 @@ public class TestConsumers {
     public static final String CUSTOM_BATCH_CONSUMER_TOPIC_AUTO_ACK = "custom-batch-consumer-auto-ack-topic";
     public static final String CUSTOM_BATCH_CONSUMER_TOPIC_ACK_FROM_LIST = "custom-batch-consumer-auto-ack-list-topic";
     public static final String CUSTOM_BATCH_CONSUMER_TOPIC_MANUAL_ACK = "custom-batch-consumer-manual-ack-topic";
+
+    public static final String SUBSCRIPTION_PROPERTIES = "subscription-properties-topic";
+
+    public static final String TEST_KEY = "test-key";
+
+    public static final String TEST_VALUE = "test-value";
 
     @PulsarConsumer(topic = "topic-one", clazz = MyMsg.class, serialization = Serialization.JSON)
     public void topicOneListener(MyMsg myMsg) {
@@ -273,5 +281,12 @@ public class TestConsumers {
                 }
             });
             batchMessageWithManualAckReceived.set(true);
+    }
+
+    @PulsarConsumer(topic = SUBSCRIPTION_PROPERTIES, clazz = MyMsg.class, subscriptionProperties = {@SubscriptionProp(key=TEST_KEY, value=TEST_VALUE)})
+    public void subscriptionPropertiesConsumer(MyMsg myMsg) {
+        Assertions.assertNotNull(myMsg);
+        Assertions.assertEquals(PulsarJavaSpringBootStarterApplicationTests.VALIDATION_STRING, myMsg.getData());
+        subscriptionPropertiesReceived.set(true);
     }
 }
