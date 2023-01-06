@@ -4,6 +4,7 @@
 [![Release](https://jitpack.io/v/majusko/pulsar-java-spring-boot-starter.svg)](https://jitpack.io/#majusko/pulsar-java-spring-boot-starter)
 [![Build Status](https://github.com/majusko/pulsar-java-spring-boot-starter/actions/workflows/test.yml/badge.svg)](https://github.com/majusko/pulsar-java-spring-boot-starter/actions/workflows/test.yml)
 [![Test Coverage](https://codecov.io/gh/majusko/pulsar-java-spring-boot-starter/branch/master/graph/badge.svg)](https://codecov.io/gh/majusko/pulsar-java-spring-boot-starter/branch/master)
+[![TCode Quality](https://github.com/majusko/pulsar-java-spring-boot-starter/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/majusko/java-pulsar-example/actions/workflows/codeql-analysis.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Join the chat at https://gitter.im/pulsar-java-spring-boot-starter/community](https://badges.gitter.im/pulsar-java-spring-boot-starter/community.svg)](https://gitter.im/pulsar-java-spring-boot-starter/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Example/Demo project
@@ -254,7 +255,7 @@ pulsar.oauth2-audience=https://broker.example.com
 - `pulsar.namespace` - Namespace separation. For example: app1/app2 OR dev/staging/prod. More in [Namespaces docs](https://pulsar.apache.org/docs/en/concepts-messaging/#namespaces).
 - `pulsar.tenant` - Pulsar multi-tenancy support. More in [Multi Tenancy docs](https://pulsar.apache.org/docs/en/concepts-multi-tenancy/).
 - `pulsar.auto-start` - Whether the subscriptions should start on application startup. Useful in case you wish to not subscribe on some environments (dev,PoC,...).
-- `pulsar.allow-interceptor` - Whether the application should allow usage of interceptors and inject default interceptors with `DEBUG` level logging.
+- `pulsar.allow-interceptor` - Whether the application should allow usage of interceptors and inject default interceptors with `DEBUG` level logging. It also switches on the Micrometer & Prometheus metrics collecting.
 - `pulsar.listener-name` - Multiple advertised listeners support - when a Pulsar cluster is deployed in the production environment, it may require to expose multiple advertised addresses for the broker. For example, when you deploy a Pulsar cluster in Kubernetes and want other clients. [Multiple advertised listeners docs](https://pulsar.apache.org/docs/en/concepts-multiple-advertised-listeners/)
 
 **Change only in case TLS is enabled** (By using `pulsar+ssl://` as `pulsar.service-url` value prefix.)
@@ -491,6 +492,18 @@ public class PulsarProducerInterceptor extends DefaultProducerInterceptor {
         super.onSendAcknowledgement(producer, message, msgId, exception);
     }
 }
+```
+
+## API & Monitoring
+
+Project implements Prometheus metrics using Micrometer.
+Simply switch the interceptor on, and you will be able to connect to project with 
+prometheus endpoints with many custom counters that will help you monitor your application.
+You need to allow interceptors in project. 
+
+Interceptor configuration:
+```
+pulsar.allow-interceptor=true
 ```
 
 ## Contributing
