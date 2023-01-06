@@ -134,5 +134,9 @@ public @interface PulsarConsumer {
      * will waiting for 100ms whether or not there is enough messages.
      */
     int timeoutMillis() default 100;
-    
+
+    /**
+     * Subscription properties. You can use this to filter the results.
+     */
+    public SubscriptionProp[] subscriptionProperties() default {};
 }

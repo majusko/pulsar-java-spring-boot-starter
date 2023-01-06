@@ -8,6 +8,7 @@ import io.github.majusko.pulsar.msg.AvroMsg;
 import io.github.majusko.pulsar.msg.MyMsg;
 import io.github.majusko.pulsar.msg.ProtoMsg;
 import io.github.majusko.pulsar.producer.ProducerFactory;
+import io.github.majusko.pulsar.producer.ProducerMaker;
 import io.github.majusko.pulsar.producer.PulsarTemplate;
 import io.github.majusko.pulsar.reactor.FluxConsumer;
 import io.github.majusko.pulsar.reactor.FluxConsumerFactory;
@@ -20,6 +21,7 @@ import org.apache.pulsar.client.api.SubscriptionType;
 import org.apache.pulsar.client.impl.ConsumerBase;
 import org.apache.pulsar.client.impl.conf.ConsumerConfigurationData;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +31,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PulsarContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -104,7 +108,8 @@ class PulsarJavaSpringBootStarterApplicationTests {
     private String customConsumerName;
 
     @Container
-    static PulsarContainer pulsarContainer = new PulsarContainer(DockerImageName.parse("apachepulsar/pulsar:latest"));
+    static PulsarContainer pulsarContainer = new PulsarContainer(DockerImageName.parse("apachepulsar/pulsar:2.10.0"))
+        .waitingFor(Wait.forListeningPort());
 
     public static final String VALIDATION_STRING = "validation-string";
 
@@ -169,7 +174,7 @@ class PulsarJavaSpringBootStarterApplicationTests {
         final List<Consumer> classicConsumers = consumerAggregator.getConsumers();
         final List<Consumer> fluxConsumers = fluxConsumerFactory.getConsumers();
 
-        Assertions.assertEquals(23, classicConsumers.size() + fluxConsumers.size());
+        Assertions.assertEquals(24, classicConsumers.size() + fluxConsumers.size());
 
         final Consumer<?> consumer =
             classicConsumers.stream().filter($ -> $.getTopic().equals(urlBuildService.buildTopicUrl("topic-one"))).findFirst().orElseThrow(Exception::new);
@@ -197,10 +202,9 @@ class PulsarJavaSpringBootStarterApplicationTests {
 
     @Test
     void testProducerRegistration() {
+        final Map<String, ProducerMaker> topics = producerFactory.getTopics();
 
-        final Map<String, ImmutableTriple<Class<?>, Serialization, Optional<String>>> topics = producerFactory.getTopics();
-
-        Assertions.assertEquals(23, topics.size());
+        Assertions.assertEquals(24, topics.size());
 
         final Set<String> topicNames = new HashSet<>(topics.keySet());
 
@@ -427,6 +431,15 @@ class PulsarJavaSpringBootStarterApplicationTests {
         }
         await().atMost(Duration.ofSeconds(10)).until(() -> testConsumers.batchMessageWithManualAckReceived.get());
         Assertions.assertEquals(consumer.getStats().getNumAcksSent(),10); 
+    }
+
+    @Test
+    void testSubscriptionPropertiesCompressed() throws PulsarClientException {
+        producer.createMessage(TestConsumers.SUBSCRIPTION_PROPERTIES, new MyMsg(VALIDATION_STRING))
+            .property(TestConsumers.TEST_KEY, TestConsumers.TEST_VALUE)
+            .send();
+
+        await().untilTrue(testConsumers.subscriptionPropertiesReceived);
     }
     
     

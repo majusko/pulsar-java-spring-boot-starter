@@ -6,6 +6,8 @@ import io.github.majusko.pulsar.msg.MyMsg;
 import io.github.majusko.pulsar.msg.MyMsg2;
 import io.github.majusko.pulsar.msg.ProtoMsg;
 import io.github.majusko.pulsar.producer.ProducerFactory;
+import io.github.majusko.pulsar.producer.ProducerMaker;
+import org.apache.pulsar.client.api.CompressionType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -37,6 +39,7 @@ public class TestProducerConfiguration {
             .addProducer(TestFluxConsumersConfiguration.ROBUST_FLUX_TOPIC_TEST, MyMsg.class)
             .addProducer(TestConsumers.CUSTOM_BATCH_CONSUMER_TOPIC_AUTO_ACK, MyMsg.class)
             .addProducer(TestConsumers.CUSTOM_BATCH_CONSUMER_TOPIC_ACK_FROM_LIST, MyMsg.class)
-            .addProducer(TestConsumers.CUSTOM_BATCH_CONSUMER_TOPIC_MANUAL_ACK, MyMsg.class);
+            .addProducer(TestConsumers.CUSTOM_BATCH_CONSUMER_TOPIC_MANUAL_ACK, MyMsg.class)
+            .addProducer(new ProducerMaker(TestConsumers.SUBSCRIPTION_PROPERTIES, MyMsg.class).setCompressionType(CompressionType.ZLIB));
     }
 }
