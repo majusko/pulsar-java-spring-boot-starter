@@ -31,3 +31,5 @@ export GPG_TTY=$(tty)
 ```yaml
 mvn clean deploy -P release-sign-artifacts --settings my-settings.xml
 ```
+
+### 4. Do magic in `https://oss.sonatype.orggit status`
