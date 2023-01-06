@@ -6,6 +6,10 @@
 [![Test Coverage](https://codecov.io/gh/majusko/pulsar-java-spring-boot-starter/branch/master/graph/badge.svg)](https://codecov.io/gh/majusko/pulsar-java-spring-boot-starter/branch/master)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Join the chat at https://gitter.im/pulsar-java-spring-boot-starter/community](https://badges.gitter.im/pulsar-java-spring-boot-starter/community.svg)](https://gitter.im/pulsar-java-spring-boot-starter/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+## Example/Demo project
+
+#### [Java Pulsar Example Project](https://github.com/majusko/java-pulsar-example)
+
 ## Quick Start
 
 Simple steps to start using the library.
@@ -172,10 +176,6 @@ class MyBatchConsumer {
 pulsar.service-url=pulsar://localhost:6650
 
 ```
-
-## Example project
-
-#### [Java Pulsar Example Project](https://github.com/majusko/java-pulsar-example)
 
 ## Documentation
 
