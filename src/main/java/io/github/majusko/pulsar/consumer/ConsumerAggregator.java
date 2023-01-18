@@ -177,7 +177,7 @@ public class ConsumerAggregator implements EmbeddedValueResolverAware {
 						final Set<MessageId> ackSet = ackList.stream().collect(Collectors.toSet());
 						consumer.acknowledge(ackList);
 						msgs.forEach((msg) -> {
-							if (!ackSet.contains(msg))
+							if (!ackSet.contains(msg.getMessageId()))
 								consumer.negativeAcknowledge(msg);
 						});
 					} else if (!manualAckMode) {
