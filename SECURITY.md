@@ -10,4 +10,4 @@
 
 ## Reporting a Vulnerability
 
-Voulnabilities can be reported as a [BUG] in [issues](https://github.com/majusko/pulsar-java-spring-boot-starter/issues) section.
+Vulnerabilities can be reported as a [BUG] in [issues](https://github.com/majusko/pulsar-java-spring-boot-starter/issues) section.
